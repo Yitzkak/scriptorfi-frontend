@@ -1,5 +1,4 @@
 // src/components/Navbar.js
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiMenu, FiX } from 'react-icons/fi';
@@ -31,8 +30,12 @@ const Navbar = () => {
 
           {/* Right Section with Buttons */}
           <div className="hidden md:flex space-x-4">
-            <button className="bg-black px-4 py-2 rounded text-white hover:bg-gray-500">Login</button>
-            <button className="bg-transparent border-2 border-[#448bca] px-4 py-2 rounded hover:bg-[#bfd7ed]">Upload</button>
+            <Link to="/login">
+              <button className="bg-black px-4 py-2 rounded text-white hover:bg-gray-500">Login</button>
+            </Link>
+            <Link to="/upload">
+              <button className="bg-transparent border-2 border-[#448bca] px-4 py-2 rounded hover:bg-[#bfd7ed]">Upload</button>
+            </Link>
           </div>
 
           {/* Mobile Menu Icon */}
