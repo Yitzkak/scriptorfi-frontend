@@ -53,7 +53,9 @@ const Navbar = () => {
             <Link to="/about" onClick={toggleMenu} className="hover:text-gray-400">About</Link>
             <Link to="/services" onClick={toggleMenu} className="hover:text-gray-400">Services</Link>
             <Link to="/contact" onClick={toggleMenu} className="hover:text-gray-400">Contact</Link>
-            <button className="bg-gray-600 px-4 py-2 rounded hover:bg-gray-500 mt-2">Login</button>
+            <Link to="/login">
+              <button className="bg-gray-600 px-4 py-2 rounded hover:bg-gray-500 mt-2">Login</button>
+            </Link>
             <button className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-500 mt-2">Upload</button>
           </div>
         )}
