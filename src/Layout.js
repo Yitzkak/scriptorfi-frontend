@@ -10,7 +10,7 @@ const Layout = () => {
     const location = useLocation();
     return(
         <>
-            <Navbar />
+            {location.pathname === '/' && <Navbar />}
             {location.pathname === '/' && <Hero />}
             {location.pathname === '/' && <OurProcess />}
             {location.pathname === '/' && <WhyChooseUsSection />}

@@ -31,10 +31,10 @@ const Navbar = () => {
           {/* Right Section with Buttons */}
           <div className="hidden md:flex space-x-4">
             <Link to="/login">
-              <button className="bg-black px-4 py-2 rounded text-white hover:bg-gray-500">Login</button>
+              <button className="bg-black px-4 py-2 rounded text-white hover:bg-gray-500">Sign In</button>
             </Link>
-            <Link to="/upload">
-              <button className="bg-transparent border-2 border-[#448bca] px-4 py-2 rounded hover:bg-[#bfd7ed]">Upload</button>
+            <Link to="/register">
+              <button className="bg-transparent border-2 border-[#448bca] px-4 py-2 rounded hover:bg-[#bfd7ed]">Sign Up</button>
             </Link>
           </div>
 
@@ -54,9 +54,11 @@ const Navbar = () => {
             <Link to="/services" onClick={toggleMenu} className="hover:text-gray-400">Services</Link>
             <Link to="/contact" onClick={toggleMenu} className="hover:text-gray-400">Contact</Link>
             <Link to="/login">
-              <button className="bg-gray-600 px-4 py-2 rounded hover:bg-gray-500 mt-2">Login</button>
+              <button className="bg-gray-600 px-4 py-2 rounded hover:bg-gray-500 mt-2">Sign In</button>
             </Link>
-            <button className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-500 mt-2">Upload</button>
+            <Link to="/register">
+              <button className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-500 mt-2">Sign Up</button>
+            </Link>
           </div>
         )}
       </div>

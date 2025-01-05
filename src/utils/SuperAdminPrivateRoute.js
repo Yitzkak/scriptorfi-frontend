@@ -3,8 +3,8 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../authContext';
 
 
-const PrivateRoute = ({ children }) => {
-    //const { user } = useAuth();
+const SuperAdminPrivateRoute = ({ children }) => {
+    // const { user } = useAuth();
     const accessToken = localStorage.getItem('accessToken');
 
     // if (!accessToken) {
@@ -19,7 +19,7 @@ const PrivateRoute = ({ children }) => {
     //     return children;
     // }
 
-    return accessToken ? children : <Navigate to="/login"/>;
+    return accessToken ? children : <Navigate to="/superadmin/login" />;
 };
 
-export default PrivateRoute;
+export default SuperAdminPrivateRoute;

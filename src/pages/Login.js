@@ -1,16 +1,23 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom"; // For navigation to the register page
-import axios from "axios";
+import { useAuth } from "../authContext";
+
 
 function Login() {
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState(null);
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(null); // Reset errors before submission
+
+        if (!email || !password) {
+          console.error("Email and password are required.");
+          return;
+        }
 
         try {
             const response = await fetch('http://127.0.0.1:8000/api/token/', {
@@ -18,18 +25,21 @@ function Login() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ username, password }),
+                body: JSON.stringify({ email: email.toLowerCase(), password }),
             });
 
             if (response.ok) {
                 const data = await response.json();
                 localStorage.setItem('accessToken', data.access);
                 localStorage.setItem('refreshToken', data.refresh);
-                console.log(data.access);
-                console.log(data.refresh);
+                localStorage.setItem('role', 'user');
+                // const userData = {
+                //     role: 'user',
+                // }
+                // login(userData);
                 navigate('/dashboard'); // Redirect to the dashboard on success
             } else {
-                setError('Invalid username or password');
+                setError('Invalid email or password');
             }
         } catch (err) {
             setError('Something went wrong. Please try again later.');
@@ -39,6 +49,7 @@ function Login() {
   return (
     <div className="h-screen flex items-center justify-center bg-[#0FFCBE]">
       <div className="bg-white bg-opacity-10 p-2 w-[50rem] md:w-[37rem]">
+      <h1 className="text-3xl font-mono text-center pb-4 text-white mb-4">Sign In</h1>
         <div className="flex justify-center mb-6">
           <div className="w-20 h-20 bg-black pb-4 bg-opacity-20 rounded-full flex items-center justify-center">
             <svg
@@ -61,11 +72,11 @@ function Login() {
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <input
-              type="text"
-              placeholder="Username"
+              type="email"
+              placeholder="Email"
               className="w-full px-4 py-4 bg-black bg-opacity-20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-white"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
@@ -100,8 +111,8 @@ function Login() {
         </form>
         <div className="text-center mt-4 text-sm text-white">
           Don't have an account?{" "}
-          <Link to="/register" className="underline hover:text-blue-300">
-            Register
+          <Link to="/register" className="text-blue-500 hover:underline">
+            Register here
           </Link>
         </div>
       </div>
