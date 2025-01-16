@@ -3,6 +3,7 @@ import axios from "axios";
 import api from "../api/api";
 import Alert from "../components/ui/Alert";
 
+
 const FileList = () => {
     const [files, setFiles] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -20,7 +21,6 @@ const FileList = () => {
           }
           setMessageType("success");
         } catch (error) {
-          console.error("Error fetching files:", error);
           setMessage("Failed to fetch files. Please try again.");
           setMessageType("error");
         } finally {

@@ -5,17 +5,17 @@ import DashboardNavbar from "./components/DashboardNavbar";
 
 const DashboardLayout = () => {
     return (
-        <div className="h-screen flex flex-col">
+        <div className="h-screen flex flex-col overflow-hidden">
             {/* Navbar */}
             <DashboardNavbar />
 
             {/* Sidebar and Main Content */}
-            <div className="flex flex-1">
+            <div className="flex flex-1 overflow-hidden">
                 {/* Sidebar */}
                 <Sidebar />
 
                 {/* Main Content */}
-                <div className="flex-1 p-4 bg-gray-100 overflow-y-auto">
+                <div className="flex-1 overflow-y-auto bg-gray-100">
                     <Outlet />
                 </div>
             </div>

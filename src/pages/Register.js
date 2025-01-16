@@ -1,14 +1,22 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import countries from "i18n-iso-countries";
+import enLocale from "i18n-iso-countries/langs/en.json";
+
+countries.registerLocale(enLocale);
 
 const Register = () => {
-    const [username, setUsername] = useState('');
+    const [first_name, setFirstname] = useState('');
+    const [last_name, setLastname] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [email, setEmail] = useState('');
+    const [country, setCountry] = useState('');
+    const countryList = countries.getNames('en');
 
+ 
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -28,7 +36,7 @@ const Register = () => {
             const response = await fetch('http://127.0.0.1:8000/api/users/register/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: email.toLowerCase(), username, password, confirm_password: confirmPassword}),
+                body: JSON.stringify({ email: email.toLowerCase(), first_name, last_name, country, password, confirm_password: confirmPassword}),
             });
 
             if (response.ok) {
@@ -69,21 +77,55 @@ const Register = () => {
           {error && <p className="text-red-500 mb-4">{error}</p>}
           {success && <p className="text-green-500 mb-4">{success}</p>}
           <form onSubmit={handleSubmit}>
+          <div className="flex mb-4">
+              <input
+                type="text"
+                placeholder="First name"
+                className="w-1/2 mr-1 px-4 py-4 bg-black bg-opacity-20 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-white"
+                value={first_name}
+                onChange={(e) => setFirstname(e.target.value)}
+                required
+              />
+              <input
+                type="text"
+                placeholder="Last name"
+                className="w-1/2 ml-1 px-4 py-4 bg-black bg-opacity-20 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-white"
+                value={last_name}
+                onChange={(e) => setLastname(e.target.value)}
+                required
+              />
+            </div>
             <div className="mb-4">
               <input
                 type="text"
                 placeholder="Email"
-                className="w-full px-4 py-4 bg-black bg-opacity-20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-white"
+                className="w-full px-4 py-4 bg-black bg-opacity-20 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-white"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
             <div className="mb-4">
+              <select
+                id="country"
+                className="w-full px-4 py-4 bg-black bg-opacity-20 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-white"
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+              >
+                <option value="">--Choose a country--</option>
+                {Object.entries(countryList).map(([code, name]) => (
+                  <option key={code} value={code}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+              <div className="text-sm text-white italic">you can leave this field blank if you prefer</div>
+            </div>
+            <div className="mb-4">
               <input
                 type="password"
                 placeholder="Password"
-                className="w-full px-4 py-4 bg-black bg-opacity-20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-white"
+                className="w-full px-4 py-4 bg-black bg-opacity-20 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-white"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -94,7 +136,7 @@ const Register = () => {
               <input
                 type="password"
                 placeholder="Confirm password"
-                className="w-full px-4 py-4 bg-black bg-opacity-20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-white"
+                className="w-full px-4 py-4 bg-black bg-opacity-20 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-white"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required

@@ -18,6 +18,9 @@ import MyTranscriptions from './pages/MyTranscriptions';
 import FileList from './pages/FileList';
 import SuperAdminLogin from './pages/superadmin/Login';
 import SuperAdminDashboard from './pages/superadmin/Dashboard';
+import { NotificationProvider } from './NotificationContext';
+import Notifications from './components/Notifications';
+
 
 import DashboardLayout from './DashboardLayout';
 import Layout from './Layout';
@@ -54,6 +57,7 @@ const router = createBrowserRouter([
       { path: "upload", element: <UploadFiles /> },
       { path: "transcriptions", element: <MyTranscriptions /> },
       { path: "files", element: <FileList /> },
+      { path: "notifications", element: <Notifications /> },
     ],
   },
   {
@@ -70,8 +74,11 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
+  
   return (
-    <RouterProvider router={router} />
+    <NotificationProvider>
+      <RouterProvider router={router} />
+    </NotificationProvider>
   );
 }
 
