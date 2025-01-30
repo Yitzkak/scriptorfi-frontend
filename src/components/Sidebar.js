@@ -8,63 +8,53 @@ const Sidebar = () => {
     const { unreadNotificationsCount } = useNotifications();
     
   return (
-    <div className="w-64 bg-gray-800 text-white flex flex-col">
-      <nav className="flex-1 px-4 py-2">
+    <div className="w-64 bg-[#5fd4c4] text-[#1A1C1C] flex flex-col">
+      <nav className="flex-1 px-3 py-3">
         <ul>
-          <li className="py-2">
+          <li className="">
             <Link to="" 
-              className={`block hover:text-gray-400 ${
-                location.pathname === "/dashboard" ? "font-bold" : ""
+              className={`block rounded-md p-3 hover:bg-[#a7b8b4] ${
+                location.pathname === "/dashboard" ? "bg-[#86a099]" : ""
                 }`}
               >
               Dashboard
             </Link>
           </li>
-          <li className="py-2">
+          <li className="">
             <Link 
                 to="/dashboard/upload" 
-                className={`block hover:text-gray-400 ${
-                  location.pathname === "/dashboard/upload" ? "font-bold" : ""
+                className={`block rounded-md p-3 hover:bg-[#a7b8b4] ${
+                  location.pathname === "/dashboard/upload" ? "bg-[#86a099] rounded-md p-3" : ""
                   }`}
               >
               Upload Files
             </Link>
           </li>
-          <li className="py-2">
-            <Link 
-                to="/dashboard/transcriptions" 
-                className={`block hover:text-gray-400 ${
-                  location.pathname === "/dashboard/transcriptions" ? "font-bold" : ""
-                  }`}
-                >
-                My Transcriptions
-            </Link>
-          </li>
-          <li className="py-2">
+          <li className="">
             <Link 
                 to="/dashboard/settings" 
-                className={`block hover:text-gray-400 ${
-                  location.pathname === "/dashboard/settings" ? "font-bold" : ""
+                className={`block rounded-md p-3 hover:bg-[#a7b8b4] ${
+                  location.pathname === "/dashboard/settings" ? "bg-[#86a099]" : ""
                   }`}
                 >
                 Settings
             </Link>
           </li>
-          <li className="py-2">
+          <li className="">
             <Link
                 to="/dashboard/files"
-                className={`block hover:text-gray-400 ${
-                location.pathname === "/dashboard/files" ? "font-bold" : ""
+                className={`block rounded-md p-3 hover:bg-[#a7b8b4] ${
+                location.pathname === "/dashboard/files" ? "bg-[#86a099]" : ""
                 }`}
                 >
                 My Files
             </Link>
            </li>
-           <li className="py-2">
+           <li className="">
             <Link
                 to="/dashboard/notifications"
-                className={`block hover:text-gray-400 ${
-                location.pathname === "/dashboard/notifications" ? "font-bold" : ""
+                className={`block rounded-md p-3 hover:bg-[#a7b8b4] ${
+                location.pathname === "/dashboard/notifications" ? "bg-[#86a099]" : ""
                 }`}
                 >
                 Notifications 

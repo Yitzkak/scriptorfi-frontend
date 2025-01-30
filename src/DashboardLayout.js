@@ -15,7 +15,7 @@ const DashboardLayout = () => {
                 <Sidebar />
 
                 {/* Main Content */}
-                <div className="flex-1 overflow-y-auto bg-gray-100">
+                <div className="flex-1 overflow-y-auto bg-white">
                     <Outlet />
                 </div>
             </div>

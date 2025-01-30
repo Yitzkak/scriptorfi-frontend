@@ -74,7 +74,6 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  
   return (
     <NotificationProvider>
       <RouterProvider router={router} />

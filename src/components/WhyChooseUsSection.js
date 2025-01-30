@@ -2,7 +2,7 @@ import { ArrowRightIcon } from '@heroicons/react/24/solid';
 
 function WhyChooseUs() {
   return (
-    <div className="bg-gray-50">
+    <div className="bg-gray-50 py-16 mt-10">
       {/* Header */}
       <div className="text-3xl font-extrabold text-center text-gray-900 pt-10 md:text-4xl lg:text-5xl">
         Why Choose Us

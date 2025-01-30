@@ -54,7 +54,6 @@ const Settings = () => {
     e.preventDefault();
     setLoading(true);
   
-
     api
       .put(
         "http://127.0.0.1:8000/api/update-profile/",
@@ -106,7 +105,7 @@ const Settings = () => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-gray-100">
+    <div className="h-full flex flex-col bg-white">
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto p-6">
         <div className="max-w-4xl mx-auto">
