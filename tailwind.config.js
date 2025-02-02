@@ -21,7 +21,8 @@ module.exports = {
         'mint-green': '#0FFCBE',
       },
       screens:{
-        'xs': '480px'
+        'xs': '480px',
+        'cmd': '769px',
       }
     },
     

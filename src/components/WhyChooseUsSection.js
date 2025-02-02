@@ -37,7 +37,7 @@ function WhyChooseUs() {
 
       {/* Highlights Section */}
         {/* Main Content */}
-        <div className="grid md:grid-cols-2 gap-12 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Image Section */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.9 }} 
@@ -57,7 +57,7 @@ function WhyChooseUs() {
             {features.map((feature, index) => (
               <motion.div 
                 key={index} 
-                className="flex flex-col rounded-lg hover:shadow-xl transition duration-300 sm:p-4"
+                className="flex flex-col rounded-lg hover:shadow-xl transition duration-300 lg:p-4"
                 whileHover={{ scale: 1.05 }}
               >
                 <div className="flex items-start text-white text-2xl pb-2">

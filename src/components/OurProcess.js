@@ -9,7 +9,7 @@ import { BiDownload } from "react-icons/bi";
 
 const OurProcess = () => {
   return (
-    <div className="bg-gray-50 py-16 px-6 mt-10 text-center">
+    <div className="bg-gray-50 py-16 px-6 mt-10 text-center md:px-12 2xl:px-[19rem]">
       <div className="max-w-3xl mx-auto">
         <div className="text-3xl font-bold mx-auto text-center mb-4 text-gray-900 pt-10 md:text-4xl lg:text-5xl"> Our transcription <span className="text-[#0FFCBE] font-semibold italic">Workflow</span>  </div>
           <p className="text-[18px] text-gray-600 text-center mb-8 md:mb-16">
@@ -19,7 +19,7 @@ const OurProcess = () => {
       </div>
       
 
-      <div className="flex flex-col md:flex-row items-center justify-center space-y-10 md:space-y-0 md:space-x-16">
+      <div className="flex flex-col md:flex-row items-center justify-center space-y-10 space-x-5 md:space-y-0 lg:space-x-16">
         
         {/* Step 1 - Upload */}
         <div className="flex flex-col items-center bg-white text-center shadow-lg rounded-lg px-8 py-10">
