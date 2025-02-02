@@ -12,13 +12,14 @@ const OurProcess = () => {
     <div className="bg-gray-50 py-16 mt-10">
       <div className="text-3xl font-bold text-center mb-4 text-gray-900 pt-10 md:text-4xl lg:text-5xl"> Our transcription <span className="text-[#0FFCBE] font-semibold italic">Workflow</span>  </div>
       <p className="text-[20px] text-gray-600 text-center mb-24">
-        Our streamlined process ensures fast, accurate, and hassle-free transcription, from file upload to delivery
+        Our streamlined process ensures fast, accurate, and hassle-free transcription, &nbsp;
+        from file upload to delivery
       </p>
 
       <div className="flex flex-col md:flex-row items-center justify-center space-y-10 md:space-y-0 md:space-x-16">
         
         {/* Step 1 - Upload */}
-        <div className="flex flex-col items-center text-center  shadow-lg rounded-lg p-8">
+        <div className="flex flex-col items-center text-center shadow-lg rounded-lg p-8 md:p-4">
           <BiCloudUpload className="w-16 h-16 text-[#362f2f] transition-transform duration-200 ease-in-out hover:animate-wiggle" />
           <p className="mt-4 font-semibold text-lg text-gray-700">Upload Audio/Video</p>
           <p className="text-[16px] text-[#374151] max-w-xs mt-2">
@@ -27,7 +28,7 @@ const OurProcess = () => {
         </div>
 
         {/* Step 2 - Transcription */}
-        <div className="flex flex-col items-center text-center shadow-lg rounded-lg p-8 ">
+        <div className="flex flex-col items-center text-center shadow-lg rounded-lg p-8 md:4">
           <BiMessageEdit className="w-16 h-16 text-[#362f2f] transition-transform duration-200 ease-in-out hover:animate-wiggle" />
           <p className="mt-4 text-[20px] font-semibold text-gray-700">Transcription Process</p>
           <p className="text-[16px] text-[#374151] max-w-xs mt-2">
