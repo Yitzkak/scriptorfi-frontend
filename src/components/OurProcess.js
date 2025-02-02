@@ -22,16 +22,16 @@ const OurProcess = () => {
       <div className="flex flex-col md:flex-row items-center justify-center space-y-10 md:space-y-0 md:space-x-16">
         
         {/* Step 1 - Upload */}
-        <div className="flex flex-col items-center bg-white text-center shadow-lg rounded-lg p-8">
+        <div className="flex flex-col items-center bg-white text-center shadow-lg rounded-lg px-8 py-10">
           <BiCloudUpload className="w-16 h-16 text-[#362f2f] transition-transform duration-200 ease-in-out hover:animate-wiggle" />
-          <p className="mt-4 font-semibold text-lg text-gray-700">Upload Audio/Video</p>
+          <p className="mt-4 font-semibold text-[20px] text-gray-700">Upload Audio/Video</p>
           <p className="text-[16px] text-[#374151] max-w-xs mt-2">
             Effortlessly upload files to our cloud for transcription.
           </p>
         </div>
 
         {/* Step 2 - Transcription */}
-        <div className="flex flex-col items-center bg-white text-center shadow-lg rounded-lg p-8">
+        <div className="flex flex-col items-center bg-white text-center shadow-lg rounded-lg px-8 py-10">
           <BiMessageEdit className="w-16 h-16 text-[#362f2f] transition-transform duration-200 ease-in-out hover:animate-wiggle" />
           <p className="mt-4 text-[20px] font-semibold text-gray-700">Transcription Process</p>
           <p className="text-[16px] text-[#374151] max-w-xs mt-2">
@@ -40,7 +40,7 @@ const OurProcess = () => {
         </div>
 
         {/* Step 3 - Download */}
-        <div className="flex flex-col items-center bg-white text-center shadow-lg rounded-lg p-8">
+        <div className="flex flex-col items-center bg-white text-center shadow-lg rounded-lg px-8 py-10">
           <BiDownload className="w-16 h-16 text-[#362f2f] transition-transform duration-200 ease-in-out hover:animate-wiggle" />
           <p className="mt-4 font-semibold text-[20px] text-gray-700">Receive Your Transcript</p>
           <p className="text-[16px] text-[#374151] max-w-xs mt-2">

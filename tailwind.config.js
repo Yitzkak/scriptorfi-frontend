@@ -20,7 +20,11 @@ module.exports = {
       colors: {
         'mint-green': '#0FFCBE',
       },
+      screens:{
+        'xs': '480px'
+      }
     },
+    
   },
   plugins: [],
 }

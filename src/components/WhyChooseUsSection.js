@@ -1,54 +1,82 @@
 import { ArrowRightIcon } from '@heroicons/react/24/solid';
+import {FaShieldAlt, FaTachometerAlt, FaCheckCircle, FaDollarSign} from 'react-icons/fa';
+import { motion } from "framer-motion";
 
 function WhyChooseUs() {
+  const features = [
+    {
+      title: "Security & Privacy",
+      description: "Your data is safe with us. We use end-to-end encryption to protect all files and transcripts.",
+      icon: <FaShieldAlt />,
+    },
+    {
+      title: "Fast Delivery",
+      description: "Get your transcriptions delivered quickly without compromising on accuracy.",
+      icon: <FaTachometerAlt />,
+    },
+    {
+      title: "High Accuracy",
+      description: "Our advanced AI ensures precise transcripts, reducing errors and saving you time.",
+      icon: <FaCheckCircle />,
+    },
+    {
+      title: "Low Cost",
+      description: "We charge significantly less than competitors while maintaining exceptional quality.",
+      icon: <FaDollarSign />,
+    },
+  ];
   return (
-    <div className="bg-gray-50 py-16 mt-10">
-      {/* Header */}
-      <div className="text-3xl font-extrabold text-center text-gray-900 pt-10 md:text-4xl lg:text-5xl">
-        Why Choose Us
+    <section className="bg-gray-50 py-16 px-6 text-center md:px-12 lg:px-[19rem] ">
+      <div className="max-w-3xl mx-auto">
+        <div className="text-3xl font-bold mx-auto text-center mb-4 text-gray-900 pt-10 md:text-4xl lg:text-5xl"> Why <span className="text-[#0FFCBE] font-semibold italic">Choose</span>  Us</div>
+          <p className="text-[18px] text-gray-600 text-center mb-8 md:mb-16">
+          Get top quality transcriptions at a fraction of the cost – 
+          enjoy the same accuracy, faster turnarounds, and unmatched value for your money!
+          </p>
       </div>
 
       {/* Highlights Section */}
-      <div className="flex flex-col items-center md:flex-row md:justify-center mt-12 px-4 md:px-8 lg:px-16">
-        {/* Image Section */}
-        <div className="w-full md:w-2/5 lg:w-1/2 flex justify-center">
-          <img
-            src="/images/front-view-teenage-girl-with-headphones-online-school.jpg"
-            alt="Person working on transcription"
-            className="w-full sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-[30rem] lg:h-[30rem] object-cover rounded-lg shadow-lg"
-          />
-        </div>
+      {/* <div className="flex flex-col md:flex-row items-center justify-center space-y-10 md:space-y-0 md:space-x-16"> */}
+        
+        {/* Main Content */}
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+          {/* Image Section */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }} 
+            animate={{ opacity: 1, scale: 1 }} 
+            transition={{ duration: 0.6 }}
+            className="h-[100%] py-4"
+          >
+            <img 
+              src="/images/front-view-teenage-girl-with-headphones-online-school.jpg" 
+              alt="Why Choose Us" 
+              className="w-full rounded-xl shadow-2xl h-[100%]"
+            />
+          </motion.div>
 
-        {/* Text Section */}
-        <div className="w-full md:w-3/5 lg:w-1/2 text-center md:text-left px-4 mt-8 md:mt-0">
-          <div className="flex flex-col space-y-8 py-4">
-            {/* Security & Privacy */}
-            <div>
-              <h3 className="text-xl md:text-2xl font-bold text-gray-900">Security & Privacy</h3>
-              <p className="text-gray-700 text-sm md:text-base leading-relaxed mt-2">
-                Your data is safe with us. We implement top-notch security measures to ensure the privacy and confidentiality of all transcripts.
-              </p>
-            </div>
-
-            {/* Speed & Accuracy */}
-            <div>
-              <h3 className="text-xl md:text-2xl font-bold text-gray-900">Speed & Accuracy</h3>
-              <p className="text-gray-700 text-sm md:text-base leading-relaxed mt-2">
-                Get accurate transcripts delivered quickly. We balance efficiency with precision to meet your timelines.
-              </p>
-            </div>
-
-            {/* Low Cost */}
-            <div>
-              <h3 className="text-xl md:text-2xl font-bold text-gray-900">Low Cost</h3>
-              <p className="text-gray-700 text-sm md:text-base leading-relaxed mt-2">
-                Enjoy high-quality transcription services at an affordable rate, tailored to fit your budget.
-              </p>
-            </div>
+          {/* Features Section */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+            {features.map((feature, index) => (
+              <motion.div 
+                key={index} 
+                className="flex flex-col rounded-lg hover:shadow-xl transition duration-300 sm:p-4"
+                whileHover={{ scale: 1.05 }}
+              >
+                <div className="flex items-start text-white text-2xl pb-2">
+                  <span className="rounded-tl-lg rounded-br-lg p-3 bg-[#0FFCBE] shadow-2xl shadow-[#0FFCBE]">
+                    {feature.icon}
+                  </span>
+                </div>
+                <div className="flex flex-col items-start">
+                  <p className="text-lg font-semibold pt-5 pb-1 text-gray-800">{feature.title}</p>
+                  <p className="text-gray-600 text-[16px] text-left">{feature.description}</p>
+                </div>
+              </motion.div>
+            ))}
           </div>
-        </div>
-      </div>
-    </div>
+        </div>   
+      {/* </div> */}
+    </section>
   );
 }
 
