@@ -6,38 +6,39 @@ import { FaFacebook, FaTwitter, FaGlobe, FaLinkedin } from 'react-icons/fa';
 const Footer = () => {
   return (
     <footer className="bg-gray-800 text-gray-400 p-8">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-24">
         
         {/* About Section */}
         <div>
-          <h3 className="text-white font-bold text-lg mb-4">ABOUT</h3>
+          <div className="flex">
+            <img src="/scriptorfi-logo-icon.png" alt="Logo" className="w-10 h-10 mr-4" />
+            <h3 className="text-white font-bold text-[24px] mb-4">Scriptorfi</h3>
+          </div>
           <p>
-            Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s.
+            Delivering high-quality transcriptions at unbeatable prices.
+            Fast, accurate, and secure—trusted by professionals worldwide.
+            Your words, perfectly transcribed, every time.
           </p>
         </div>
 
         {/* Categories Section */}
         <div>
-          <h3 className="text-white font-bold text-lg mb-4">CATEGORIES</h3>
+          <h3 className="text-white font-bold text-lg mb-4">Company</h3>
           <ul className="space-y-2">
-            <li>Website Design</li>
-            <li>UI Design</li>
-            <li>Web Development</li>
-            <li>Video Editor</li>
-            <li>Theme Creator</li>
-            <li>Templates</li>
+            <li>About Us</li>
+            <li>Contact</li>
+            <li>Privacy Policy</li>
+            <li>Blog</li>
           </ul>
         </div>
 
-        {/* Quick Links Section */}
+        {/* Account */}
         <div>
-          <h3 className="text-white font-bold text-lg mb-4">QUICK LINKS</h3>
+          <h3 className="text-white font-bold text-lg mb-4">Account</h3>
           <ul className="space-y-2">
-            <li>About Us</li>
-            <li>Contact Us</li>
-            <li>Contribute</li>
-            <li>Privacy Policy</li>
-            <li>Sitemap</li>
+            <li>Sign in</li>
+            <li>Sign Up</li>
+            <li>Upload File</li>
           </ul>
         </div>
       </div>

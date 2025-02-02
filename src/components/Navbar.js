@@ -16,8 +16,20 @@ const Navbar = () => {
         <div className="flex justify-between items-center py-4">
           
           {/* Logo */}
-          <div className="text-2xl font-bold">
+          {/* <div className="text-2xl font-bold">
             <Link to="/">Scriptor-Fi</Link>
+          </div> */}
+
+          <div className="flex">
+            {/* Icon positioned behind */}
+            <div className="flex items-center justify-center opacity-20 mr-1">
+              <img src="/scriptorfi-logo-icon.png" alt="Icon" className="w-10 h-10" />
+            </div>
+
+            {/* Text on top */}
+            <div className="relative text-2xl font-bold">
+              <Link to="/">Scriptorfi</Link>
+            </div>
           </div>
 
           {/* Navigation Links (Desktop) */}
