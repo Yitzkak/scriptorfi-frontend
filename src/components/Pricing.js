@@ -5,7 +5,7 @@ const Pricing = () => {
   const [verbatim, setVerbatim] = useState(false);
   const [rushOrder, setRushOrder] = useState(false);
 
-  const baseRate = 0.6;
+  const baseRate = 0.5;
   const verbatimRate = 0.2;
   const rushOrderRate = 0.5;
 
@@ -21,7 +21,7 @@ const Pricing = () => {
       <div className="max-w-3xl mx-auto">
         <div className="text-3xl font-bold text-center mb-4 text-gray-900 pt-10 md:text-4xl lg:text-5xl">Simple <span className="text-[#0FFCBE] font-semibold italic">&</span> Transparent Pricing</div>
         <p className="text-lg text-gray-600 mb-8">
-          Get high-quality transcriptions at an unbeatable rate of <span className=" font-semibold">$0.6 per minute</span>.
+          Get high-quality transcriptions at an unbeatable rate of <span className=" font-semibold">$0.5 per minute</span>.
           Customize your order with extra features for precise and fast results.
         </p>
       </div>
@@ -31,10 +31,15 @@ const Pricing = () => {
         <div className="mb-4">
           <label className="block text-gray-600 mb-2">Audio Duration (minutes)</label>
           <input
-            type="number"
+            type="text"
             className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0FFCBE]"
             value={duration}
-            onChange={(e) => setDuration(Math.max(0, Number(e.target.value)))}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value === "" || (!isNaN(value) && value.trim() !== "")) {
+                setDuration(value === "" ? "" : Math.max(0, Number(value)));
+              }
+            }}
             placeholder="Enter duration"
           />
         </div>

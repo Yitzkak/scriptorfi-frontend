@@ -14,19 +14,13 @@ const Navbar = () => {
     <nav className="bg-slate-100 text-black">
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex justify-between items-center py-4">
-          
-          {/* Logo */}
-          {/* <div className="text-2xl font-bold">
-            <Link to="/">Scriptor-Fi</Link>
-          </div> */}
-
           <div className="flex">
-            {/* Icon positioned behind */}
+            {/* Site Icon*/}
             <div className="flex items-center justify-center mr-1">
               <img src="images/black-logo-pencil.png" alt="Icon" className="w-10 h-10" />
             </div>
 
-            {/* Text on top */}
+            {/* Site name */}
             <div className="relative text-2xl font-bold">
               <Link to="/">Scriptorfi</Link>
             </div>
@@ -46,7 +40,7 @@ const Navbar = () => {
               <button className="bg-[#0FFCBE] px-4 py-2 rounded text-[#362f2f] hover:bg-[#0DCFA2] transition">Sign In</button>
             </Link>
             <Link to="/register">
-              <button className="bg-transparent border-2 border-[#0FFCBE] px-4 py-2 rounded hover:bg-[#0ffcbd40] transition ">Sign Up</button>
+              <button className="bg-transparent border-2 border-[#0FFCBE] px-4 py-2 rounded hover:bg-[#0ffcbd21] transition ">Sign Up</button>
             </Link>
           </div>
 
@@ -66,10 +60,10 @@ const Navbar = () => {
             <Link to="/services" onClick={toggleMenu} className="hover:text-gray-400">Services</Link>
             <Link to="/contact" onClick={toggleMenu} className="hover:text-gray-400">Contact</Link>
             <Link to="/login">
-              <button className="bg-gray-600 px-4 py-2 rounded hover:bg-gray-500 mt-2">Sign In</button>
+              <button className="bg-[#0FFCBE] px-4 py-2 w-[100%] rounded hover:bg-[#0DCFA2] mt-2">Sign In</button>
             </Link>
             <Link to="/register">
-              <button className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-500 mt-2">Sign Up</button>
+              <button className="bg-transparent border-2 border-[#0FFCBE] px-4 py-2 w-[100%] rounded mt-2 hover:bg-[#0ffcbd21] transition ">Sign Up</button>
             </Link>
           </div>
         )}
