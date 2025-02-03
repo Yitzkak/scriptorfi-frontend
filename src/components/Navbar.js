@@ -22,8 +22,8 @@ const Navbar = () => {
 
           <div className="flex">
             {/* Icon positioned behind */}
-            <div className="flex items-center justify-center opacity-20 mr-1">
-              <img src="/scriptorfi-logo-icon.png" alt="Icon" className="w-10 h-10" />
+            <div className="flex items-center justify-center mr-1">
+              <img src="images/black-logo-pencil.png" alt="Icon" className="w-10 h-10" />
             </div>
 
             {/* Text on top */}
@@ -43,10 +43,10 @@ const Navbar = () => {
           {/* Right Section with Buttons */}
           <div className="hidden md:flex space-x-4">
             <Link to="/login">
-              <button className="bg-black px-4 py-2 rounded text-white hover:bg-gray-500">Sign In</button>
+              <button className="bg-[#0FFCBE] px-4 py-2 rounded text-[#362f2f] hover:bg-[#0DCFA2] transition">Sign In</button>
             </Link>
             <Link to="/register">
-              <button className="bg-transparent border-2 border-[#448bca] px-4 py-2 rounded hover:bg-[#bfd7ed]">Sign Up</button>
+              <button className="bg-transparent border-2 border-[#0FFCBE] px-4 py-2 rounded hover:bg-[#0ffcbd40] transition ">Sign Up</button>
             </Link>
           </div>
 

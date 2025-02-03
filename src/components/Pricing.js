@@ -21,7 +21,7 @@ const Pricing = () => {
       <div className="max-w-3xl mx-auto">
         <div className="text-3xl font-bold text-center mb-4 text-gray-900 pt-10 md:text-4xl lg:text-5xl">Simple <span className="text-[#0FFCBE] font-semibold italic">&</span> Transparent Pricing</div>
         <p className="text-lg text-gray-600 mb-8">
-          Get high-quality transcriptions at an unbeatable rate of <span className="text-[#0FFCBE] font-semibold">$0.6 per minute</span>.
+          Get high-quality transcriptions at an unbeatable rate of <span className=" font-semibold">$0.6 per minute</span>.
           Customize your order with extra features for precise and fast results.
         </p>
       </div>
@@ -55,7 +55,7 @@ const Pricing = () => {
           </label>
         </div>
 
-        <div className="text-lg font-semibold text-gray-800 mb-6">Total Cost: <span className="text-[#0FFCBE]">${calculatePrice()}</span></div>
+        <div className="text-lg font-semibold text-gray-800 mb-6">Total Cost: <span className="">${calculatePrice()}</span></div>
         <button className="w-full bg-[#0FFCBE] text-white py-3 rounded-lg font-semibold hover:bg-[#0DCFA2] transition">Get Started</button>
       </div>
     </div>

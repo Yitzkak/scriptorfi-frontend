@@ -5,7 +5,7 @@ const About = () => {
   return (
     <div className="bg-gray-50 min-h-screen text-gray-800">
       {/* Hero Section */}
-      <div className="relative bg-[#0FFCBE] py-20 text-center text-white">
+      <div className="relative bg-[#0FFCBE] py-20 text-center text-gray-900">
         <h1 className="text-5xl font-bold">About Us</h1>
         <p className="mt-4 text-lg max-w-3xl mx-auto">
           We are dedicated to providing high-quality, accurate, and affordable transcription services. Our AI-driven technology ensures speed and precision, giving you the best results every time.

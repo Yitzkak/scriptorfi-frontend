@@ -11,7 +11,7 @@ const Layout = () => {
     const location = useLocation();
     return(
         <div className="bg-gray-50">
-            {location.pathname === '/' && <Navbar />}
+            <Navbar />
             {location.pathname === '/' && <Hero />}
             {location.pathname === '/' && <OurProcess />}
             {location.pathname === '/' && <WhyChooseUsSection />}

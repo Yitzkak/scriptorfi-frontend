@@ -20,6 +20,7 @@ import SuperAdminLogin from './pages/superadmin/Login';
 import SuperAdminDashboard from './pages/superadmin/Dashboard';
 import { NotificationProvider } from './NotificationContext';
 import Notifications from './components/Notifications';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 
 
 import DashboardLayout from './DashboardLayout';
@@ -39,6 +40,7 @@ const router = createBrowserRouter([
       { path: "services", element: <Services /> },
       { path: "login", element: <Login /> },
       { path: "register", element: <Register /> },
+      { path: "privacy-policy", element: <PrivacyPolicy /> },
       { path: "superadmin/login", element: <SuperAdminLogin /> },
     ],
   },
