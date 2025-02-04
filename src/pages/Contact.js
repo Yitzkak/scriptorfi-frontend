@@ -5,17 +5,17 @@ const Contact = () => {
   return (
     <div className=" items-center justify-center bg-gray-100 pb-8">
         <div className="relative bg-[#0FFCBE] py-20 text-center text-gray-900">
-        <h2 className="text-3xl font-bold text-gray-800 text-center mb-4">
-            Get in Touch
+            <h2 className="text-3xl font-bold text-gray-800 text-center mb-4">
+                Get in Touch
             </h2>
-            <p className="text-center text-gray-600 mb-2 px-20">
-            Have any questions or need support? Reach out to us and we'll get back to you as soon as possible.
+            <p className="text-center text-lg mb-2 px-20">
+                Have any questions or need support? Reach out to us and we'll get back to you as soon as possible.
             </p>
         </div>
 
       <div className="flex justify-center">   
       <div className="w-full max-w-4xl  px-5 py-20">
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid gap-8">
           {/* Contact Information */}
           <div className="space-y-6">
             <div className="flex items-center space-x-4">
