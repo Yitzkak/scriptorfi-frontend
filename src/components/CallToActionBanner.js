@@ -2,8 +2,8 @@ import  React from 'react';
 
 const CallToActionBanner = () => {
     return(
-        <div class="bg-mint-green py-8 flex flex-col md:flex-row items-center justify-center mt-20 gap-6">
-            <h5 class="text-2xl font-bold text-gray-600 text-center md:text-left">
+        <div class="bg-mint-green py-8 flex flex-col lg:flex-row items-center justify-center mt-20 gap-6">
+            <h5 class="text-lg font-bold text-gray-600 text-center md:text-left sm:text-2xl">
                 Your Words, Transcribed with Precision.
             </h5>
             <div class="flex space-x-4">
