@@ -3,15 +3,18 @@ import { Mail, Phone, MapPin } from "lucide-react";
 
 const Contact = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
+    <div className="min-h-screen items-center justify-center bg-gray-100">
+        <div className="relative bg-[#0FFCBE] py-20 text-center text-gray-900">
+        <h2 className="text-3xl font-bold text-gray-800 text-center mb-4">
+            Get in Touch
+            </h2>
+            <p className="text-center text-gray-600 mb-2 px-20">
+            Have any questions or need support? Reach out to us and we'll get back to you as soon as possible.
+            </p>
+        </div>
+
+      <div className="flex items-center justify-center xs:m-2 sm:m-2 md:m-10">   
       <div className="w-full max-w-4xl bg-white shadow-lg rounded-2xl p-8">
-        <h2 className="text-3xl font-bold text-gray-800 text-center mb-6">
-          Get in Touch
-        </h2>
-        <p className="text-center text-gray-600 mb-8">
-          Have any questions or need support? Reach out to us and we'll get back to you as soon as possible.
-        </p>
-        
         <div className="grid md:grid-cols-2 gap-8">
           {/* Contact Information */}
           <div className="space-y-6">
@@ -59,6 +62,7 @@ const Contact = () => {
             </form>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
