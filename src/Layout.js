@@ -17,7 +17,7 @@ const Layout = () => {
             {location.pathname === '/' && <WhyChooseUsSection />}
             {location.pathname === '/' && <Pricing />}
             {location.pathname === '/' && <CallToActionBanner />}
-           <main>
+           <main className="">
                 <Outlet />
            </main>
             <Footer />
