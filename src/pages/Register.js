@@ -52,7 +52,7 @@ const Register = () => {
     };
 
     return (
-        <div className="h-screen flex items-center justify-center bg-[#0FFCBE] mx-5">
+        <div className="flex items-center justify-center bg-[#0FFCBE] px-2 py-14">
            
         <div className="bg-white bg-opacity-10 p-2 w-[50rem] md:w-[37rem]">
         <h1 className="text-3xl font-mono text-center pb-4 text-white mb-4">Sign Up</h1>
