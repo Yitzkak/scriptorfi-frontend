@@ -5,7 +5,7 @@ const About = () => {
   return (
     <div className="bg-gray-50 min-h-screen text-gray-800">
       {/* Hero Section */}
-      <div className="relative bg-[#0FFCBE] py-20 text-center text-gray-900">
+      <div className="relative bg-[#0FFCBE] py-20 text-center text-gray-900 px-6">
         <h1 className="text-5xl font-bold">About Us</h1>
         <p className="mt-4 text-lg max-w-3xl mx-auto">
           We are dedicated to providing high-quality, accurate, and affordable transcription services. Our AI-driven technology ensures speed and precision, giving you the best results every time.
@@ -22,7 +22,7 @@ const About = () => {
       </div>
       
       {/* Why Choose Us Section */}
-      <div className="bg-white py-16">
+      <div className="bg-white py-16 px-6">
         <h2 className="text-3xl font-bold text-center text-gray-900">Why Choose Us?</h2>
         <div className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto mt-8">
           <div className="flex items-start space-x-4">
@@ -78,7 +78,7 @@ const About = () => {
       </div>
       
       {/* Our Team Section */}
-      <div className="bg-gray-100 py-16 text-center">
+      <div className="bg-gray-100 py-16 text-center px-6">
         <h2 className="text-3xl font-bold text-gray-900">Meet Our Team</h2>
         <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
           Our team consists of experts in AI, linguistics, and customer support, ensuring you get the best service possible.
