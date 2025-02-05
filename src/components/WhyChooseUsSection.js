@@ -26,7 +26,7 @@ function WhyChooseUs() {
     },
   ];
   return (
-    <section className="bg-gray-50 py-16 px-6 text-center md:px-12 2xl:px-[19rem] ">
+    <div className="bg-gray-50 py-16 px-6 text-center md:px-12 2xl:px-[19rem] ">
       <div className="max-w-3xl mx-auto">
         <div className="text-3xl font-bold mx-auto text-center mb-4 text-gray-900 pt-10 md:text-4xl lg:text-5xl"> Why <span className="text-[#0FFCBE] font-semibold italic">Choose</span>  Us</div>
           <p className="text-[18px] text-gray-600 text-center mb-8 md:mb-16">
@@ -73,7 +73,7 @@ function WhyChooseUs() {
             ))}
           </div>
         </div>   
-    </section>
+    </div>
   );
 }
 

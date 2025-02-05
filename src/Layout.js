@@ -7,6 +7,7 @@ import WhyChooseUsSection from "./components/WhyChooseUsSection";
 import CallToActionBanner from "./components/CallToActionBanner";
 import Pricing from "./components/Pricing";
 
+
 const Layout = () => {
     const location = useLocation();
     return(

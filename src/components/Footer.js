@@ -26,9 +26,9 @@ const Footer = () => {
         <div>
           <h3 className="text-white font-bold text-lg mb-4">Company</h3>
           <ul className="space-y-2">
-            <Link to="/about" className=" hover:text-slate-100"><li className="hover:text-[#0FFCBE] md:py-2">About Us</li></Link>
-            <Link to="/contact" className="hover:text-slate-100"><li className=" hover:text-[#0FFCBE] md:py-2">Contact</li></Link>
-            <Link to="/privacy-policy" className="hover:text-slate-100"><li className="hover:text-[#0FFCBE] md:py-2">Privacy & Policy</li></Link>
+            <Link to="/about" className=" hover:text-slate-100"><li className="hover:text-[#0FFCBE] py-2">About Us</li></Link>
+            <Link to="/contact" className="hover:text-slate-100"><li className=" hover:text-[#0FFCBE] py-2">Contact</li></Link>
+            <Link to="/privacy-policy" className="hover:text-slate-100"><li className="hover:text-[#0FFCBE] py-2">Privacy & Policy</li></Link>
             <Link to="/blog" className="hover:text-slate-100"><li className="hover:text-[#0FFCBE] md:py-2">Blog</li></Link>
           </ul>
         </div>
@@ -37,9 +37,9 @@ const Footer = () => {
         <div>
           <h3 className="text-white font-bold text-lg mb-4">Account</h3>
           <ul className="space-y-2">
-            <Link to="/login" className=" hover:text-slate-100"><li className="hover:text-[#0FFCBE] md:py-2">Sign In</li></Link>
-            <Link to="/register" className=" hover:text-slate-100"><li className="hover:text-[#0FFCBE] md:py-2">Sign Up</li></Link>
-            <Link to="/about" className=" hover:text-slate-100"><li className="hover:text-[#0FFCBE] md:py-2">Upload File</li></Link>
+            <Link to="/login" className=" hover:text-slate-100"><li className="py-2 hover:text-[#0FFCBE]">Sign In</li></Link>
+            <Link to="/register" className=" hover:text-slate-100"><li className="py-2 hover:text-[#0FFCBE]">Sign Up</li></Link>
+            <Link to="/about" className=" hover:text-slate-100"><li className="py-2 hover:text-[#0FFCBE]">Upload File</li></Link>
           </ul>
         </div>
       </div>

@@ -21,6 +21,7 @@ import SuperAdminDashboard from './pages/superadmin/Dashboard';
 import { NotificationProvider } from './NotificationContext';
 import Notifications from './components/Notifications';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import FilesUpload from './pages/FIlesUpload';
 
 
 import DashboardLayout from './DashboardLayout';
@@ -41,6 +42,7 @@ const router = createBrowserRouter([
       { path: "login", element: <Login /> },
       { path: "register", element: <Register /> },
       { path: "privacy-policy", element: <PrivacyPolicy /> },
+      { path: "upload", element: <FilesUpload /> },
       { path: "superadmin/login", element: <SuperAdminLogin /> },
     ],
   },
