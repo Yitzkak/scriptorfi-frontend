@@ -1,4 +1,5 @@
 import  React from 'react';
+import { Link } from 'react-router-dom';
 
 const CallToActionBanner = () => {
     return(
@@ -11,7 +12,7 @@ const CallToActionBanner = () => {
                     Free trial
                 </button>
                 <button class="px-6 py-3 border border-black text-black font-semibold rounded-lg hover:bg-white hover:text-green-600 transition-colors duration-200">
-                    Upload a file
+                   <Link to="/upload">Upload a file</Link> 
                 </button>
                 
             </div>

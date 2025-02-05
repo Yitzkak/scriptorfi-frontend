@@ -28,19 +28,22 @@ const FilesUpload = () => {
 
         {/* Upload Options */}
         <div className="grid grid-cols-2 gap-4 mb-6">
-          <label className="flex items-center gap-2 bg-gray-200 p-4 rounded-lg cursor-pointer hover:bg-gray-300">
+          <label className="flex items-center gap-2 bg-gray-500 p-4 rounded-lg cursor-pointer hover:bg-gray-300">
             <FaCloudUploadAlt className="text-2xl text-[#0FFCBE]" />
-            <span>Upload from Computer</span>
+            <span className="text-white">Upload from Computer</span>
             <input type="file" multiple onChange={handleFileUpload} className="hidden" />
           </label>
-          <button className="flex items-center gap-2 bg-gray-200 p-4 rounded-lg hover:bg-gray-300">
-            <FaLink className="text-2xl text-[#0FFCBE]" /> Upload from URL
+          <button className="flex items-center gap-2 bg-gray-500 p-4 rounded-lg hover:bg-gray-300">
+            <FaLink className="text-2xl text-[#0FFCBE]" /> 
+            <span className="text-white">Upload from URL</span>
           </button>
-          <button className="flex items-center gap-2 bg-gray-200 p-4 rounded-lg hover:bg-gray-300">
-            <FaGoogleDrive className="text-2xl text-[#0FFCBE]" /> Upload from Google Drive
+          <button className="flex items-center gap-2 bg-gray-500 p-4 rounded-lg hover:bg-gray-300">
+            <FaGoogleDrive className="text-2xl text-[#0FFCBE]" /> 
+            <span className="text-white">Upload from Google Drive</span>
           </button>
-          <button className="flex items-center gap-2 bg-gray-200 p-4 rounded-lg hover:bg-gray-300">
-            <FaDropbox className="text-2xl text-[#0FFCBE]" /> Upload from Dropbox
+          <button className="flex items-center gap-2 bg-gray-500 p-4 rounded-lg hover:bg-gray-300">
+            <FaDropbox className="text-2xl text-[#0FFCBE]" /> 
+            <span className="text-white">Upload from Dropbox</span>
           </button>
         </div>
 

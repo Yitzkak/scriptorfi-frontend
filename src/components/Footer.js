@@ -39,7 +39,7 @@ const Footer = () => {
           <ul className="space-y-2">
             <Link to="/login" className=" hover:text-slate-100"><li className="py-2 hover:text-[#0FFCBE]">Sign In</li></Link>
             <Link to="/register" className=" hover:text-slate-100"><li className="py-2 hover:text-[#0FFCBE]">Sign Up</li></Link>
-            <Link to="/about" className=" hover:text-slate-100"><li className="py-2 hover:text-[#0FFCBE]">Upload File</li></Link>
+            <Link to="/upload" className=" hover:text-slate-100"><li className="py-2 hover:text-[#0FFCBE]">Upload File</li></Link>
           </ul>
         </div>
       </div>

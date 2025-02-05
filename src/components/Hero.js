@@ -1,5 +1,6 @@
 // src/components/Hero.js
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Hero = () => {
   return (
@@ -17,7 +18,7 @@ const Hero = () => {
           Free Trial
         </button>
         <button className="border border-black py-2 px-4 rounded font-semibold">
-          Upload a file @ $0.5/min
+          <Link to="/upload">Upload a file @ $0.5/min</Link> 
         </button>
       </div>
     </div>
