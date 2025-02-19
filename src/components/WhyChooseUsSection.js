@@ -1,5 +1,5 @@
 import { ArrowRightIcon } from '@heroicons/react/24/solid';
-import {FaShieldAlt, FaTachometerAlt, FaCheckCircle, FaDollarSign} from 'react-icons/fa';
+import {FaShieldAlt, FaTachometerAlt, FaCheckCircle, FaDollarSign, FaArrowUp} from 'react-icons/fa';
 import { motion } from "framer-motion";
 
 function WhyChooseUs() {
@@ -11,12 +11,12 @@ function WhyChooseUs() {
     },
     {
       title: "Fast Delivery",
-      description: "Get your transcriptions delivered quickly without compromising on accuracy.",
+      description: "Get your transcriptions delivered to you quickly without compromising on accuracy.",
       icon: <FaTachometerAlt />,
     },
     {
       title: "High Accuracy",
-      description: "Our advanced AI ensures precise transcripts, reducing errors and saving you time.",
+      description: "Our advanced AI ensures precise and accurate transcripts, reducing errors and saving you time.",
       icon: <FaCheckCircle />,
     },
     {
@@ -37,23 +37,32 @@ function WhyChooseUs() {
 
       {/* Highlights Section */}
         {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
           {/* Image Section */}
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }} 
-            animate={{ opacity: 1, scale: 1 }} 
-            transition={{ duration: 0.6 }}
-            className="h-[100%] py-4"
-          >
-            <img 
-              src="/images/front-view-teenage-girl-with-headphones-online-school.jpg" 
-              alt="Why Choose Us" 
-              className="w-full rounded-xl shadow-2xl h-[100%]"
-            />
-          </motion.div>
+          <div className="h-[80.5%] pt-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }} 
+              animate={{ opacity: 1, scale: 1 }} 
+              transition={{ duration: 0.6 }}
+              className="w-full max-w-full h-[100%]"
+            >
+              <img 
+                src="/images/front-view-teenage-girl-with-headphones-online-school.jpg" 
+                alt="Why Choose Us" 
+                className="w-full max-w-full h-[100%] rounded-xl shadow-2xl"
+              />
+            </motion.div>
+            <div>
+              <button className="flex text-center items-center justify-center w-full bg-[#0FFCBE] text-white font-semibold py-4 px-4 mt-4 rounded-lg hover:bg-[#0FFCBE]"> 
+                <p className="mr-2 font-[500]">Upload file</p>
+                <FaArrowUp/>
+              </button>
+            </div>
+          </div>
+          
 
           {/* Features Section */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 md:0 xl:gap-12">
             {features.map((feature, index) => (
               <motion.div 
                 key={index} 
@@ -65,14 +74,16 @@ function WhyChooseUs() {
                     {feature.icon}
                   </span>
                 </div>
-                <div className="flex flex-col items-start">
+                <div className="flex flex-col items-start pb-4">
                   <p className="text-lg font-semibold pt-5 pb-1 text-gray-800">{feature.title}</p>
                   <p className="text-gray-600 text-[16px] text-left">{feature.description}</p>
                 </div>
               </motion.div>
             ))}
           </div>
-        </div>   
+        </div> 
+
+
     </div>
   );
 }
