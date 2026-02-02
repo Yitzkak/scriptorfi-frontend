@@ -13,6 +13,8 @@ import Dashboard from './pages/Dashboard';
 import Register from './pages/Register';
 import Settings from './pages/Settings';
 import Payment from './pages/Payment';
+import PaymentSuccess from './pages/PaymentSuccess';
+import PaymentCancel from './pages/PaymentCancel';
 import UploadFiles from './pages/UploadFiles';
 import MyTranscriptions from './pages/MyTranscriptions';
 import FileList from './pages/FileList';
@@ -22,7 +24,6 @@ import { NotificationProvider } from './NotificationContext';
 import Notifications from './components/Notifications';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import FilesUpload from './pages/FIlesUpload';
-
 
 import DashboardLayout from './DashboardLayout';
 import Layout from './Layout';
@@ -54,12 +55,14 @@ const router = createBrowserRouter([
       </PrivateRoute>
     ),
     children: [
-      { path: "", element: <Dashboard /> }, // Default dashboard page
+      { path: "", element: <Dashboard /> },
       { path: "settings", element: <Settings /> },
       { path: "payment", element: <Payment /> },
+      { path: "payment/success", element: <PaymentSuccess /> },
+      { path: "payment/cancel", element: <PaymentCancel /> },
       { path: "contact", element: <Contact /> },
       { path: "upload", element: <UploadFiles /> },
-      { path: "transcriptions", element: <MyTranscriptions /> },
+      { path: "my-transcriptions", element: <MyTranscriptions /> },
       { path: "files", element: <FileList /> },
       { path: "notifications", element: <Notifications /> },
     ],

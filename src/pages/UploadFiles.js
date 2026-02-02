@@ -110,11 +110,14 @@ const UploadFiles = () => {
 
   // Handle audio upload
   const handleUpload = async () => {
-    
+    console.log("Upload button clicked!");
+
     if (files.length === 0) {
       alert("Select a file to upload");
       return;
     }
+
+    console.log("Files to upload:", files);
 
     const formattedValues = Object.fromEntries(
       Object.entries(checkboxValues).map(([key, value]) => [key, value ? "Yes" : "No"])
@@ -132,14 +135,17 @@ const UploadFiles = () => {
     formData.append("spelling", options.spellingType);
     formData.append("instruction", options.instructions);
 
+    console.log("Sending upload request...");
+
     try {
       const response = await api.post(
-        "http://localhost:8000/api/files/upload/",
+        "/api/files/upload/",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
         }
       );
+      console.log("Upload successful:", response.data);
       setMessage("File Uploaded Successfully.");
       setMessageType("success");
       setFiles([]);
@@ -149,10 +155,11 @@ const UploadFiles = () => {
         spellingType: "US",
         instructions: "",
       });
-      navigate('/dashboard/payment');
+      navigate("/dashboard/payment", { state: { fileData: response.data } });
     } catch (error) {
-      console.error(error);
-      setMessage("Failed to upload file.");
+      console.error("Upload error:", error);
+      console.error("Error response:", error.response);
+      setMessage(error.response?.data?.error || "Failed to upload file.");
       setMessageType("error");
     }
   };
