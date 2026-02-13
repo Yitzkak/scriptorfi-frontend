@@ -20,10 +20,19 @@ import MyTranscriptions from './pages/MyTranscriptions';
 import FileList from './pages/FileList';
 import SuperAdminLogin from './pages/superadmin/Login';
 import SuperAdminDashboard from './pages/superadmin/Dashboard';
+import AdminQueue from './pages/superadmin/Queue';
+import AdminPayments from './pages/superadmin/Payments';
+import AdminUsers from './pages/superadmin/Users';
+import AdminNotifications from './pages/superadmin/Notifications';
+import AdminSettings from './pages/superadmin/Settings';
 import { NotificationProvider } from './NotificationContext';
 import Notifications from './components/Notifications';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import FilesUpload from './pages/FIlesUpload';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import EditorPage from './pages/editor/EditorPage';
+import EditorHomePage from './pages/editor/EditorHomePage';
 
 import DashboardLayout from './DashboardLayout';
 import Layout from './Layout';
@@ -44,6 +53,8 @@ const router = createBrowserRouter([
       { path: "register", element: <Register /> },
       { path: "privacy-policy", element: <PrivacyPolicy /> },
       { path: "upload", element: <FilesUpload /> },
+      { path: "forgot-password", element: <ForgotPassword /> },
+      { path: "reset-password", element: <ResetPassword /> },
       { path: "superadmin/login", element: <SuperAdminLogin /> },
     ],
   },
@@ -75,8 +86,25 @@ const router = createBrowserRouter([
       </SuperAdminPrivateRoute>
     ),
     children: [
-      { path: "", element: <SuperAdminDashboard />}
+      { path: "", element: <SuperAdminDashboard /> },
+      { path: "queue", element: <AdminQueue /> },
+      { path: "payments", element: <AdminPayments /> },
+      { path: "users", element: <AdminUsers /> },
+      { path: "notifications", element: <AdminNotifications /> },
+      { path: "settings", element: <AdminSettings /> }
     ]
+  },
+  {
+    path: "/editor",
+    element: (
+      <PrivateRoute>
+        <EditorPage />
+      </PrivateRoute>
+    ),
+  },
+  {
+    path: "/editor-home",
+    element: <EditorHomePage />,
   }
 ]);
 

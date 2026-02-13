@@ -5,7 +5,7 @@ import { useAuth } from '../authContext';
 
 const SuperAdminPrivateRoute = ({ children }) => {
     // const { user } = useAuth();
-    const accessToken = localStorage.getItem('accessToken');
+    const accessToken = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
 
     // if (!accessToken) {
     //     if (user.role === 'admin') {

@@ -1,0 +1,349 @@
+/* Scriptorfi Editor - Modern Minimal Styles */
+
+/* Base waveform container */
+.waveform-container {
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+/* Waveform placeholder bars with animation */
+.waveform-bar-placeholder {
+  width: 3px;
+  height: 20px;
+  background: linear-gradient(180deg, #d1d5db 0%, #e5e7eb 100%);
+  border-radius: 50px;
+  animation: waveformPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes waveformPulse {
+  0%, 100% {
+    height: 12px;
+    opacity: 0.4;
+  }
+  50% {
+    height: 28px;
+    opacity: 0.7;
+  }
+}
+
+/* Clickable timestamp styles */
+.clickable-timestamp {
+  cursor: pointer !important;
+  color: #0d9488 !important;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  border-radius: 4px;
+  padding: 1px 4px;
+  margin: 0 1px;
+}
+
+.clickable-timestamp:hover {
+  color: #0f766e !important;
+  background-color: rgba(13, 148, 136, 0.1);
+}
+
+.clickable-timestamp:active {
+  transform: scale(0.98);
+}
+
+/* Quill Editor Overrides for cleaner look */
+.ql-container {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  border: none !important;
+  position: relative;
+}
+
+.ql-editor {
+  padding: 24px 32px;
+  font-size: 15px;
+  line-height: 1.8;
+  color: #1e293b;
+}
+
+/* Big centered placeholder with large icon */
+.ql-editor.ql-blank::before {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-style: normal;
+  text-align: center;
+  white-space: normal;
+  width: 100%;
+  pointer-events: none;
+  color: #cbd5e1;
+}
+
+.ql-container.ql-bubble .ql-editor.ql-blank::before {
+  left: 50%;
+  right: auto;
+  transform: translate(-50%, -50%);
+  top: 50%;
+  font-style: normal;
+  text-align: center;
+  content: '✏️';
+  font-size: 4rem;
+  color: #cbd5e1;
+  opacity: 0.6;
+}
+
+.ql-container.ql-bubble .ql-editor.ql-blank::after {
+  content: 'Start typing your transcription...';
+  position: absolute;
+  top: calc(50% + 3rem);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #94a3b8;
+  text-align: center;
+  pointer-events: none;
+}
+
+.ql-editor:focus {
+  outline: none;
+}
+
+.ql-toolbar {
+  display: none !important;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Modal backdrop animation */
+.modal-backdrop {
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Modal content animation */
+.modal-content {
+  animation: slideUp 0.25s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Focus ring utilities */
+.focus-ring {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+}
+
+/* Smooth transitions for interactive elements */
+button, a, input, select, textarea {
+  transition: all 0.15s ease;
+}
+
+/* Suggestion dropdown styling */
+.suggestion-dropdown {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.suggestion-item {
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+
+.suggestion-item:hover,
+.suggestion-item.active {
+  background: #f0fdfa;
+}
+
+/* Context menu styling */
+.context-menu {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.2);
+  padding: 6px;
+  min-width: 180px;
+}
+
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #334155;
+  transition: all 0.1s ease;
+}
+
+.context-menu-item:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.context-menu-divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 6px 0;
+}
+
+/* Loading spinner */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #0d9488;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Panel styles */
+.panel {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.06);
+}
+
+/* Badge styles */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 50px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-teal {
+  background: #ccfbf1;
+  color: #0f766e;
+}
+
+.badge-gray {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+/* Typography utilities */
+.text-display {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.text-body {
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.text-caption {
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #0d9488 0%, #10b981 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass effect */
+.glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+/* Hover lift effect */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px -8px rgba(0, 0, 0, 0.12);
+}
+
+/* Volume Slider Styles */
+.volume-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #14b8a6 0%, #10b981 100%);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(20, 184, 166, 0.4);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.volume-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 3px 10px rgba(20, 184, 166, 0.5);
+}
+
+.volume-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #14b8a6 0%, #10b981 100%);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(20, 184, 166, 0.4);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.volume-slider::-moz-range-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 3px 10px rgba(20, 184, 166, 0.5);
+}

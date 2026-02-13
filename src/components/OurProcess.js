@@ -1,54 +1,73 @@
 import React from 'react';
-import { ArrowUpTrayIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
-import { FaPencilAlt, FaDownload, FaUpload } from 'react-icons/fa';
-import { BiPencil } from "react-icons/bi";
-import { BiMessageEdit } from "react-icons/bi";
-import { BiCloudUpload } from "react-icons/bi";
-import { BiDownload } from "react-icons/bi";
+import { BiMessageEdit, BiCloudUpload, BiDownload } from "react-icons/bi";
+import { motion } from "framer-motion";
 
 
 const OurProcess = () => {
+  const steps = [
+    {
+      title: "Upload Files",
+      description: "Drag, drop, or select multiple audio files and review your order summary instantly.",
+      icon: <BiCloudUpload />,
+    },
+    {
+      title: "Transcription",
+      description: "Human‑verified transcription with clear formatting, timestamps, and speaker labels.",
+      icon: <BiMessageEdit />,
+    },
+    {
+      title: "Delivery",
+      description: "Receive your transcript in your dashboard and download when ready.",
+      icon: <BiDownload />,
+    },
+  ];
+
   return (
-    <div className="bg-gray-50 py-16 px-6 mt-10 text-center md:px-12 2xl:px-[19rem]">
-      <div className="max-w-3xl mx-auto">
-        <div className="text-3xl font-bold mx-auto text-center mb-4 text-gray-900 pt-10 md:text-4xl lg:text-5xl"> Our transcription <span className="text-[#0FFCBE] font-semibold italic">Workflow</span>  </div>
-          <p className="text-[18px] text-gray-600 text-center mb-8 md:mb-16">
-            Our streamlined process ensures fast, accurate, and hassle-free transcription, &nbsp;
-            from file upload to delivery
+    <section className="bg-white py-20 px-6 md:px-12 2xl:px-[19rem]">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center max-w-3xl mx-auto">
+          <p className="text-sm font-semibold tracking-widest text-teal-600 uppercase">Our transcription workflow</p>
+          <h2 className="mt-3 text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900">
+            Simple, professional, and built for speed
+          </h2>
+          <p className="mt-4 text-lg text-gray-600">
+            A streamlined process that takes you from upload to delivery with clear status updates.
           </p>
+        </div>
+
+        <div className="mt-14 relative">
+          <div className="hidden md:block absolute left-0 right-0 top-6 h-[2px] bg-gradient-to-r from-teal-500/20 via-teal-500/70 to-teal-500/20" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-6">
+            {steps.map((step, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.08 }}
+                className="relative"
+              >
+                <div className="flex items-center gap-4 md:flex-col md:items-start">
+                  <div>
+                    <div className="w-14 h-14 rounded-full bg-teal-500 text-white flex items-center justify-center text-2xl shadow-lg shadow-teal-500/30">
+                      {step.icon}
+                    </div>
+                    <div className="hidden md:block mt-3 text-xs font-semibold text-teal-600 tracking-widest">
+                      STEP {index + 1}
+                    </div>
+                  </div>
+                  <div className="md:mt-8">
+                    <h3 className="text-lg font-semibold text-gray-900">{step.title}</h3>
+                    <p className="mt-2 text-gray-600 leading-relaxed">{step.description}</p>
+                  </div>
+                </div>
+
+                <div className="md:hidden mt-4 text-xs font-semibold text-teal-600 tracking-widest">STEP {index + 1}</div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
       </div>
-      
-
-      <div className="flex flex-col md:flex-row items-center justify-center space-y-10 md:space-x-5 md:space-y-0 lg:space-x-16">
-        
-        {/* Step 1 - Upload */}
-        <div className="flex flex-col items-center bg-white text-center shadow-lg rounded-lg px-8 py-10">
-          <BiCloudUpload className="w-16 h-16 text-[#362f2f] transition-transform duration-200 ease-in-out hover:animate-wiggle" />
-          <p className="mt-4 font-semibold text-[20px] text-gray-700">Upload Audio/Video</p>
-          <p className="text-[16px] text-[#374151] max-w-xs mt-2">
-            Effortlessly upload your file(s) to our cloud for transcription.
-          </p>
-        </div>
-
-        {/* Step 2 - Transcription */}
-        <div className="flex flex-col items-center bg-white text-center shadow-lg rounded-lg px-8 py-10">
-          <BiMessageEdit className="w-16 h-16 text-[#362f2f] transition-transform duration-200 ease-in-out hover:animate-wiggle" />
-          <p className="mt-4 text-[20px] font-semibold text-gray-700">Transcription Process</p>
-          <p className="text-[16px] text-[#374151] max-w-xs mt-2">
-            Our team converts your audio/video into text with high accuracy.
-          </p>
-        </div>
-
-        {/* Step 3 - Download */}
-        <div className="flex flex-col items-center bg-white text-center shadow-lg rounded-lg px-8 py-10">
-          <BiDownload className="w-16 h-16 text-[#362f2f] transition-transform duration-200 ease-in-out hover:animate-wiggle" />
-          <p className="mt-4 font-semibold text-[20px] text-gray-700">Receive Your Transcript</p>
-          <p className="text-[16px] text-[#374151] max-w-xs mt-2">
-            Download the completed transcript once it's ready.
-          </p>
-        </div>
-      </div>
-    </div>
+    </section>
   );
 };
 

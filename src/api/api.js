@@ -1,14 +1,14 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:8000", // Adjust to your backend URL
+  baseURL: process.env.REACT_APP_API_URL || "http://localhost:8000",
   headers: {
     "Content-Type": "application/json",
   },
 });
 
 api.interceptors.request.use(async (config) => {
-  const accessToken = localStorage.getItem("accessToken");
+  const accessToken = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }
@@ -24,13 +24,14 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem("refreshToken");
-        const response = await axios.post("http://localhost:8000/api/token/refresh/", {
+        const refreshToken = localStorage.getItem("refreshToken") || sessionStorage.getItem("refreshToken");
+        const storage = localStorage.getItem("refreshToken") ? localStorage : sessionStorage;
+        const response = await axios.post(`${process.env.REACT_APP_API_URL || "http://localhost:8000"}/api/token/refresh/`, {
           refresh: refreshToken,
         });
 
         const newAccessToken = response.data.access;
-        localStorage.setItem("accessToken", newAccessToken);
+        storage.setItem("accessToken", newAccessToken);
 
         // Retry the original request with the new access token
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
@@ -39,6 +40,8 @@ api.interceptors.response.use(
         console.error("Token refresh failed. Redirecting to login...");
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
+        sessionStorage.removeItem("accessToken");
+        sessionStorage.removeItem("refreshToken");
         window.location.href = "/login"; // Redirect to login
       }
     }

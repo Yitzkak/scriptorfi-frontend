@@ -1,18 +1,26 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom"; // For navigation to the register page
-import { useAuth } from "../authContext";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 
 function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState(null);
+  const [rememberMe, setRememberMe] = useState(true);
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const location = useLocation();
+    const [uploadMessage, setUploadMessage] = useState('');
+
+    useEffect(() => {
+        // Check if redirected from upload page
+        if (location.state?.from === '/upload' && location.state?.message) {
+            setUploadMessage(location.state.message);
+        }
+    }, [location]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError(null); // Reset errors before submission
+        setError(null);
 
         if (!email || !password) {
           console.error("Email and password are required.");
@@ -30,14 +38,47 @@ function Login() {
 
             if (response.ok) {
                 const data = await response.json();
-                localStorage.setItem('accessToken', data.access);
-                localStorage.setItem('refreshToken', data.refresh);
-                localStorage.setItem('role', 'user');
-                // const userData = {
-                //     role: 'user',
-                // }
-                // login(userData);
-                navigate('/dashboard'); // Redirect to the dashboard on success
+              const storage = rememberMe ? localStorage : sessionStorage;
+              storage.setItem('accessToken', data.access);
+              storage.setItem('refreshToken', data.refresh);
+              storage.setItem('role', 'user');
+                
+                // Check if there's a pending upload ID
+                const pendingUploadId = localStorage.getItem('pendingUploadId');
+                const freeTrialPending = sessionStorage.getItem('freeTrialPending') === 'true' || location.state?.freeTrial;
+                
+                if (pendingUploadId) {
+                    // Claim the anonymous upload
+                    try {
+                        const claimResponse = await fetch('http://127.0.0.1:8000/api/files/claim/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${data.access}`
+                            },
+                            body: JSON.stringify({ upload_id: parseInt(pendingUploadId) })
+                        });
+                        
+                        if (claimResponse.ok) {
+                            localStorage.removeItem('pendingUploadId');
+                            // User has pending upload, go directly to checkout/payment page
+                          navigate('/dashboard/payment', { state: { fileIds: [parseInt(pendingUploadId, 10)] } });
+                        } else {
+                            console.error('Failed to claim upload');
+                            navigate('/dashboard');
+                        }
+                    } catch (error) {
+                        console.error('Error claiming upload:', error);
+                        navigate('/dashboard');
+                    }
+                } else if (freeTrialPending) {
+                  sessionStorage.setItem('freeTrialActive', 'true');
+                  sessionStorage.removeItem('freeTrialPending');
+                  navigate('/dashboard/upload', { state: { freeTrial: true } });
+                } else {
+                  // Normal login, go to dashboard
+                  navigate('/dashboard');
+                }
             } else {
                 setError('Invalid email or password');
             }
@@ -47,75 +88,100 @@ function Login() {
     };
 
   return (
-    <div className="flex items-center justify-center bg-[#0FFCBE] px-2 py-14">
-      <div className="bg-white bg-opacity-10 p-2 w-[50rem] md:w-[37rem]">
-      <h1 className="text-3xl font-mono text-center pb-4 text-white mb-4">Sign In</h1>
-        <div className="flex justify-center mb-6">
-          <div className="w-20 h-20 bg-black pb-4 bg-opacity-20 rounded-full flex items-center justify-center">
-            <svg
-              className="w-12 h-12 text-[#dfe5e0]"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4.5a4.5 4.5 0 014.5 4.5c0 2.485-2.015 4.5-4.5 4.5s-4.5-2.015-4.5-4.5a4.5 4.5 0 014.5-4.5zm0 12c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5z"
-              />
-            </svg>
+    <div className="bg-white">
+      <section className="bg-gray-50 py-16 px-6 md:px-12">
+        <div className="max-w-6xl mx-auto text-center">
+          <p className="text-sm font-semibold tracking-widest text-teal-600 uppercase">Sign In</p>
+          <h1 className="mt-3 text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900">Welcome back</h1>
+          <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
+            Log in to manage uploads, review transcripts, and complete payments.
+          </p>
+        </div>
+      </section>
+
+      <section className="py-16 px-6 md:px-12">
+        <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-10 items-start">
+          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-8">
+            <h2 className="text-2xl font-semibold text-gray-900">Why sign in?</h2>
+            <ul className="mt-6 space-y-4">
+              {[
+                "Continue your uploads and checkout",
+                "Track order status and payments",
+                "Access your transcripts anytime",
+              ].map((text, index) => (
+                <li key={index} className="flex items-start gap-3">
+                  <span className="mt-1 w-2 h-2 rounded-full bg-teal-500"></span>
+                  <p className="text-gray-700">{text}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
+            <h2 className="text-xl font-semibold text-gray-900">Sign in</h2>
+            <p className="mt-2 text-sm text-gray-600">Use your registered email and password.</p>
+
+            {uploadMessage && (
+              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded">
+                <p className="text-sm">{uploadMessage}</p>
+              </div>
+            )}
+            {error && <p className="text-red-600 text-sm mt-4">{error}</p>}
+
+            <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Email</label>
+                <input
+                  type="email"
+                  placeholder="you@example.com"
+                  className="mt-1 w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Password</label>
+                <input
+                  type="password"
+                  placeholder="Enter your password"
+                  className="mt-1 w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="flex items-center justify-between text-sm text-gray-600">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    className="rounded border-gray-300 text-teal-600"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                  />
+                  Remember me
+                </label>
+                <Link to="/forgot-password" className="text-teal-600 hover:underline">
+                  Forgot Password?
+                </Link>
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-teal-500 py-3 text-white text-lg font-semibold rounded-lg hover:bg-teal-600 transition"
+              >
+                Sign in
+              </button>
+            </form>
+
+            <div className="text-center mt-4 text-sm text-gray-600">
+              Don't have an account?{" "}
+              <Link to="/register" className="text-teal-600 hover:underline">
+                Create one
+              </Link>
+            </div>
           </div>
         </div>
-        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <input
-              type="email"
-              placeholder="Email"
-              className="w-full px-4 py-4 bg-black bg-opacity-20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-white"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <input
-              type="password"
-              placeholder="Password"
-              className="w-full px-4 py-4 bg-black bg-opacity-20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-white"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <div className="flex justify-between items-center mb-4 text-sm text-white">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                className="form-checkbox text-white bg-white bg-opacity-20"
-              />
-              <span className="ml-2">Remember me</span>
-            </label>
-            <a href="#" className="hover:underline">
-              Forgot Password?
-            </a>
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-black py-5 text-white text-lg font-poppins rounded-sm shadow-2xl hover:bg-gray transition"
-          >
-            LOGIN
-          </button>
-        </form>
-        <div className="text-center mt-4 text-sm text-white">
-          Don't have an account?{" "}
-          <Link to="/register" className="text-blue-500 hover:underline">
-            Register here
-          </Link>
-        </div>
-      </div>
+      </section>
     </div>
   );
 }

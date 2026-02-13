@@ -1,106 +1,118 @@
 import React from "react";
-import {FaShieldAlt, FaTachometerAlt, FaCheckCircle, FaDollarSign} from 'react-icons/fa';
+import { FaShieldAlt, FaTachometerAlt, FaCheckCircle, FaDollarSign } from "react-icons/fa";
 
 const About = () => {
   return (
-    <div className="bg-gray-50 min-h-screen text-gray-800">
-      {/* Hero Section */}
-      <div className="relative bg-[#0FFCBE] py-20 text-center text-gray-900 px-6">
-        <h1 className="text-5xl font-bold">About Us</h1>
-        <p className="mt-4 text-lg max-w-3xl mx-auto">
-          We are dedicated to providing high-quality, accurate, and affordable transcription services. Our AI-driven technology ensures speed and precision, giving you the best results every time.
-        </p>
-      </div>
-      
-      {/* Our Mission Section */}
-      <div className="container mx-auto px-6 py-16 text-center">
-        <h2 className="text-3xl font-bold text-gray-900">Our Mission</h2>
-        <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
-          Our goal is to make transcription services accessible, affordable, and incredibly accurate. We leverage advanced AI to deliver industry-leading quality while keeping costs low.
-        </p>
-        <img src="/images/laptop-and-headset.jpg" alt="Our Mission" className="mx-auto mt-8 rounded-xl shadow-lg w-3/4" />
-      </div>
-      
-      {/* Why Choose Us Section */}
-      <div className="bg-white py-16 px-6">
-        <h2 className="text-3xl font-bold text-center text-gray-900">Why Choose Us?</h2>
-        <div className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto mt-8">
-          <div className="flex items-start space-x-4">
-            <div className="p-4 bg-[#0FFCBE] text-white rounded-full shadow-lg">
-              <FaShieldAlt />
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold">Secure Transcription & Confidentiality</h3>
-              <p className="text-gray-600">
-                Your audio files are handled with the highest level of security. 
-                From the moment you upload them to when they are transcribed, 
-                we guarantee that your sensitive content stays private and is not shared with any third parties.
-              </p>
-            </div>
+    <div className="bg-white">
+      {/* Hero */}
+      <section className="bg-gray-50 py-16 px-6 md:px-12">
+        <div className="max-w-6xl mx-auto text-center">
+          <p className="text-sm font-semibold tracking-widest text-teal-600 uppercase">About</p>
+          <h1 className="mt-3 text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900">
+            Human‑verified transcription, powered by AI
+          </h1>
+          <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
+            Scriptorfi blends smart automation with expert review to deliver transcripts you can trust—fast, accurate, and affordable.
+          </p>
+        </div>
+      </section>
+
+      {/* Mission */}
+      <section className="py-16 px-6 md:px-12">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Our mission</h2>
+            <p className="mt-4 text-gray-600">
+              We make professional transcription accessible for teams, creators, and researchers by combining AI speed with human precision.
+            </p>
+            <ul className="mt-6 space-y-3">
+              {[
+                "Transparent pricing with no surprises",
+                "Human‑reviewed quality control",
+                "Secure handling of sensitive content",
+              ].map((text, i) => (
+                <li key={i} className="flex items-start gap-3">
+                  <span className="mt-1 w-2 h-2 rounded-full bg-teal-500"></span>
+                  <p className="text-gray-700">{text}</p>
+                </li>
+              ))}
+            </ul>
           </div>
-          <div className="flex items-start space-x-4">
-            <div className="p-4 bg-[#0FFCBE] text-white rounded-full shadow-lg">
-              <FaTachometerAlt />
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold">Fast & Efficient Transcription Services</h3>
-              <p className="text-gray-600">
-                We value your time, which is why we ensure a fast turnaround for every transcription. 
-                Our system processes your files efficiently, and our human experts finalize them with precision, ensuring you receive your results promptly.
-              </p>
-            </div>
+          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6">
+            <img
+              src="/images/laptop-and-headset.jpg"
+              alt="Our mission"
+              className="rounded-xl w-full h-full object-cover"
+            />
           </div>
-          <div className="flex items-start space-x-4">
-            <div className="p-4 bg-[#0FFCBE] text-white rounded-full shadow-lg">
-              <FaCheckCircle />
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold">Human-Driven Accuracy for Every Transcription</h3>
-              <p className="text-gray-600 text-[16px]">
-                We rely on both state-of-the-art transcription tools and the critical eye of our experienced professionals to guarantee high accuracy. 
-                Our experts review every transcription to ensure that even the most complex audio is captured perfectly.
-              </p>
-            </div>
+        </div>
+      </section>
+
+      {/* Why choose us */}
+      <section className="bg-gray-50 py-16 px-6 md:px-12">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center max-w-3xl mx-auto">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Why teams choose Scriptorfi</h2>
+            <p className="mt-3 text-gray-600">
+              Reliable turnaround, airtight security, and transcripts polished by experts.
+            </p>
           </div>
-          <div className="flex items-start space-x-4">
-            <div className="p-4 bg-[#0FFCBE] text-white rounded-full shadow-lg">
-              <FaDollarSign />
-            </div>
+          <div className="mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              {
+                title: "Secure by default",
+                desc: "Your files are protected from upload to delivery with strict confidentiality.",
+                icon: FaShieldAlt,
+              },
+              {
+                title: "Fast turnaround",
+                desc: "AI speed with human QA delivers transcripts on schedule.",
+                icon: FaTachometerAlt,
+              },
+              {
+                title: "Human‑verified accuracy",
+                desc: "Every transcript is reviewed by professionals for clarity and completeness.",
+                icon: FaCheckCircle,
+              },
+              {
+                title: "Fair pricing",
+                desc: "Transparent per‑minute rates that scale to any project size.",
+                icon: FaDollarSign,
+              },
+            ].map((item, index) => (
+              <div key={index} className="bg-white border border-gray-200 rounded-2xl p-6">
+                <div className="w-12 h-12 rounded-full bg-teal-500/10 text-teal-600 flex items-center justify-center">
+                  <item.icon />
+                </div>
+                <h3 className="mt-4 text-lg font-semibold text-gray-900">{item.title}</h3>
+                <p className="mt-2 text-gray-600">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-16 px-6 md:px-12">
+        <div className="max-w-6xl mx-auto bg-gradient-to-r from-teal-500 to-mint-green rounded-2xl p-8 md:p-12 text-white">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div>
-              <h3 className="text-xl font-semibold">Budget-Friendly Pricing, Premium Service</h3>
-              <p className="text-gray-600">
-                Offering the most affordable transcription services around, we ensure you get high-quality results without the hefty price tag. 
-                Whether for personal or business needs, we provide value that fits any budget.
+              <h2 className="text-2xl md:text-3xl font-bold">Ready to get started?</h2>
+              <p className="mt-3 text-white/90">
+                Upload your files and get a clean transcript quickly with full visibility into pricing.
               </p>
+            </div>
+            <div className="flex md:justify-end">
+              <a
+                href="/upload"
+                className="inline-flex items-center justify-center bg-white text-teal-600 font-semibold px-6 py-3 rounded-lg hover:bg-gray-100 transition"
+              >
+                Upload a file
+              </a>
             </div>
           </div>
         </div>
-      </div>
-      
-      {/* Our Team Section */}
-      <div className="bg-gray-100 py-16 text-center px-6">
-        <h2 className="text-3xl font-bold text-gray-900">Meet Our Team</h2>
-        <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
-          Our team consists of experts in AI, linguistics, and customer support, ensuring you get the best service possible.
-        </p>
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto mt-12">
-          <div className="bg-white p-6 rounded-xl shadow-lg">
-            <img src="/images/team1.jpg" alt="Team Member" className="w-24 h-24 mx-auto rounded-full" />
-            <h3 className="mt-4 text-lg font-semibold">Jane Doe</h3>
-            <p className="text-gray-500">CEO & Founder</p>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow-lg">
-            <img src="/images/team2.jpg" alt="Team Member" className="w-24 h-24 mx-auto rounded-full" />
-            <h3 className="mt-4 text-lg font-semibold">John Smith</h3>
-            <p className="text-gray-500">Head of AI Development</p>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow-lg">
-            <img src="/images/team3.jpg" alt="Team Member" className="w-24 h-24 mx-auto rounded-full" />
-            <h3 className="mt-4 text-lg font-semibold">Emily Johnson</h3>
-            <p className="text-gray-500">Customer Success Manager</p>
-          </div>
-        </div>
-      </div>
+      </section>
     </div>
   );
 };

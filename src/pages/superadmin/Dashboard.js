@@ -1,87 +1,87 @@
-import React, { useEffect, useState } from 'react';
-import api from '../../api/api';
+import React, { useEffect, useMemo, useState } from "react";
+import api from "../../api/api";
+import AdminTopbar from "../../components/superadmin/AdminTopbar";
 
 const SuperAdminDashboard = () => {
     const [files, setFiles] = useState([]);
-    const [error, setError] = useState('');
+    const [error, setError] = useState("");
 
     useEffect(() => {
         const fetchFiles = async () => {
             try {
-                const response = await api.get('http://localhost:8000/api/superadmin/files/');
-                setFiles(response.data);
-                console.log(response.data);
+                const response = await api.get("/api/superadmin/files/");
+                setFiles(response.data || []);
             } catch (err) {
-                setError('Failed to fetch files. Please try again.');
+                setError("Failed to fetch files. Please try again.");
             }
         };
 
         fetchFiles();
     }, []);
 
-    const updateFileStatus = async (id, status) => {
-        // Check if the file has already been marked
-        // If it has already been marked as completed, don't do anything
-        // if the complete button is clicked again. Same for pending button
-        const clickedFile = files.find(file => file.id === id);
-        if (clickedFile && clickedFile.status === status) return;
-    
-        try {
-            await api.post(
-                `http://localhost:8000/api/superadmin/files/${id}/status/`,
-                { status }
-            );
-            setFiles((prevFiles) =>
-                prevFiles.map((file) =>
-                    file.id === id ? { ...file, status } : file
-                )
-            );
-            alert('File status updated successfully!');
-        } catch (err) {
-            setError('Failed to update file status. Please try again.');
-        }
-    };
+    const metrics = useMemo(() => {
+        const pending = files.filter((file) => file.status === "Pending").length;
+        const review = files.filter((file) => file.status === "In Review").length;
+        const completed = files.filter((file) => file.status === "Completed").length;
+        const revenue = files.reduce((sum, file) => sum + Number(file.total_cost || 0), 0);
+        return { pending, review, completed, revenue };
+    }, [files]);
 
     return (
-        <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Super Admin Dashboard</h1>
-            {error && <p className="text-red-500">{error}</p>}
-            <div className="overflow-x-auto">
-                <table className="table-auto w-full border-collapse border border-gray-300">
-                    <thead>
-                        <tr>
-                            <th className="border border-gray-300 p-2">File Name</th>
-                            <th className="border border-gray-300 p-2">Size</th>
-                            <th className="border border-gray-300 p-2">Uploaded By</th>
-                            <th className="border border-gray-300 p-2">Status</th>
-                            <th className="border border-gray-300 p-2">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {files.map((file) => (
-                            <tr key={file.id}>
-                                <td className="border border-gray-300 p-2">{file.name}</td>
-                                <td className="border border-gray-300 p-2">{file.size}</td>
-                                <td className="border border-gray-300 p-2">{file.user?.username || 'N/A'}</td>
-                                <td className="border border-gray-300 p-2">{file.status}</td>
-                                <td className="border border-gray-300 p-2">
-                                    <button
-                                        className="bg-green-500 text-white px-2 py-1 rounded mr-2"
-                                        onClick={() => updateFileStatus(file.id, 'Completed')}
-                                    >
-                                        Mark as Completed
-                                    </button>
-                                    <button
-                                        className="bg-yellow-500 text-white px-2 py-1 rounded"
-                                        onClick={() => updateFileStatus(file.id, 'Pending')}
-                                    >
-                                        Mark as Pending
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+        <div className="min-h-screen">
+            <AdminTopbar title="Admin Overview" />
+
+            <div className="px-6 pb-10">
+                {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+                    {[
+                        { label: "Pending", value: metrics.pending },
+                        { label: "In Review", value: metrics.review },
+                        { label: "Completed", value: metrics.completed },
+                        { label: "Total Revenue", value: `$${metrics.revenue.toFixed(2)}` },
+                    ].map((card) => (
+                        <div key={card.label} className="bg-white border border-gray-200 rounded-2xl p-5">
+                            <p className="text-sm text-gray-500">{card.label}</p>
+                            <p className="text-2xl font-semibold text-gray-900 mt-2">{card.value}</p>
+                        </div>
+                    ))}
+                </div>
+
+                <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2 bg-white border border-gray-200 rounded-2xl p-6">
+                        <h2 className="text-lg font-semibold text-gray-900">Recent uploads</h2>
+                        <p className="text-sm text-gray-500 mt-1">Latest files in the queue.</p>
+                        <div className="mt-4 divide-y divide-gray-200">
+                            {files.slice(0, 6).map((file) => (
+                                <div key={file.id} className="py-4 flex items-center justify-between">
+                                    <div>
+                                        <p className="font-medium text-gray-900">{file.name}</p>
+                                        <p className="text-xs text-gray-500">
+                                            {file.user?.email || file.user?.username || "Anonymous"}
+                                        </p>
+                                    </div>
+                                    <span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600">
+                                        {file.status}
+                                    </span>
+                                </div>
+                            ))}
+                            {files.length === 0 && (
+                                <p className="text-sm text-gray-500 py-6">No uploads yet.</p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="bg-white border border-gray-200 rounded-2xl p-6">
+                        <h2 className="text-lg font-semibold text-gray-900">Operational notes</h2>
+                        <p className="text-sm text-gray-500 mt-1">Quick reminders for the team.</p>
+                        <ul className="mt-4 space-y-3 text-sm text-gray-600">
+                            <li>Prioritize rush orders in the upload queue.</li>
+                            <li>Verify transcript delivery before marking completed.</li>
+                            <li>Follow up on unpaid files daily.</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
     );

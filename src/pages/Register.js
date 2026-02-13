@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import countries from "i18n-iso-countries";
 import enLocale from "i18n-iso-countries/langs/en.json";
 
@@ -41,7 +41,32 @@ const Register = () => {
 
             if (response.ok) {
                 setSuccess('Registration successful! Redirecting to login...');
-                setTimeout(() => navigate('/login'), 2000); // Redirect to login after 2 seconds
+                
+                // Check if there's a pending upload
+                const pendingUploadId = localStorage.getItem('pendingUploadId');
+                
+                const freeTrialPending = sessionStorage.getItem('freeTrialPending') === 'true';
+
+                if (pendingUploadId) {
+                    // Redirect to login with upload message
+                    setTimeout(() => navigate('/login', { 
+                        state: { 
+                            from: '/register', 
+                            message: 'Please login to complete your upload and proceed to checkout' 
+                        } 
+                    }), 2000);
+                } else if (freeTrialPending) {
+                  setTimeout(() => navigate('/login', { 
+                    state: { 
+                      from: '/register',
+                      freeTrial: true,
+                      message: 'Please login to activate your free trial.'
+                    } 
+                  }), 2000);
+                } else {
+                    // Normal registration, go to login
+                    setTimeout(() => navigate('/login'), 2000);
+                }
             } else {
                 const data = await response.json();
                 setError(data.error || 'Registration failed. Please try again.');
@@ -52,115 +77,143 @@ const Register = () => {
     };
 
     return (
-        <div className="flex items-center justify-center bg-[#0FFCBE] px-2 py-14">
-           
-        <div className="bg-white bg-opacity-10 p-2 w-[50rem] md:w-[37rem]">
-        <h1 className="text-3xl font-mono text-center pb-4 text-white mb-4">Sign Up</h1>
-          <div className="flex justify-center mb-6">
-            <div className="w-20 h-20 bg-black pb-4 bg-opacity-20 rounded-full flex items-center justify-center">
-              <svg
-                className="w-12 h-12 text-[#dfe5e0]"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4.5a4.5 4.5 0 014.5 4.5c0 2.485-2.015 4.5-4.5 4.5s-4.5-2.015-4.5-4.5a4.5 4.5 0 014.5-4.5zm0 12c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5z"
-                />
-              </svg>
+        <div className="bg-white">
+          <section className="bg-gray-50 py-16 px-6 md:px-12">
+            <div className="max-w-6xl mx-auto text-center">
+              <p className="text-sm font-semibold tracking-widest text-teal-600 uppercase">Sign Up</p>
+              <h1 className="mt-3 text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900">Create your Scriptorfi account</h1>
+              <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
+                Get started in minutes and upload your first audio file for professional transcription.
+              </p>
             </div>
-          </div>
-          {error && <p className="text-red-500 mb-4">{error}</p>}
-          {success && <p className="text-green-500 mb-4">{success}</p>}
-          <form onSubmit={handleSubmit}>
-          <div className="flex mb-4">
-              <input
-                type="text"
-                placeholder="First name"
-                className="w-1/2 mr-1 px-4 py-4 bg-black bg-opacity-20 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-white"
-                value={first_name}
-                onChange={(e) => setFirstname(e.target.value)}
-                required
-              />
-              <input
-                type="text"
-                placeholder="Last name"
-                className="w-1/2 ml-1 px-4 py-4 bg-black bg-opacity-20 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-white"
-                value={last_name}
-                onChange={(e) => setLastname(e.target.value)}
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <input
-                type="text"
-                placeholder="Email"
-                className="w-full px-4 py-4 bg-black bg-opacity-20 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-white"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <select
-                id="country"
-                className="w-full px-4 py-4 bg-black bg-opacity-20 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-white"
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
-              >
-                <option value="">--Choose a country--</option>
-                {Object.entries(countryList).map(([code, name]) => (
-                  <option key={code} value={code}>
-                    {name}
-                  </option>
-                ))}
-              </select>
-              <div className="text-sm text-white italic">you can leave this field blank if you prefer</div>
-            </div>
-            <div className="mb-4">
-              <input
-                type="password"
-                placeholder="Password"
-                className="w-full px-4 py-4 bg-black bg-opacity-20 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-white"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
+          </section>
 
-            <div className="mb-4">
-              <input
-                type="password"
-                placeholder="Confirm password"
-                className="w-full px-4 py-4 bg-black bg-opacity-20 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-white"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
-            </div>
-            
-            <button
-              type="submit"
-              className="w-full bg-black py-5 text-white text-lg font-poppins rounded-sm shadow-2xl hover:bg-gray transition"
-            >
-              Sign Up
-            </button>
-          </form>
-          <div className="text-center mt-4 text-sm text-white">
-          Already have an account?{' '}
-                <button
+          <section className="py-16 px-6 md:px-12">
+            <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-10 items-start">
+              <div className="bg-gray-50 border border-gray-200 rounded-2xl p-8">
+                <h2 className="text-2xl font-semibold text-gray-900">Why create an account?</h2>
+                <ul className="mt-6 space-y-4">
+                  {[
+                    "Track uploads and payment status",
+                    "Access completed transcripts anytime",
+                    "Fast checkout and saved preferences",
+                  ].map((text, index) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <span className="mt-1 w-2 h-2 rounded-full bg-teal-500"></span>
+                      <p className="text-gray-700">{text}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
+                <h2 className="text-xl font-semibold text-gray-900">Create account</h2>
+                <p className="mt-2 text-sm text-gray-600">Use your work or personal email.</p>
+
+                {error && <p className="text-red-600 text-sm mt-4">{error}</p>}
+                {success && <p className="text-teal-600 text-sm mt-4">{success}</p>}
+
+                <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">First name</label>
+                      <input
+                        type="text"
+                        placeholder="First name"
+                        className="mt-1 w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        value={first_name}
+                        onChange={(e) => setFirstname(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Last name</label>
+                      <input
+                        type="text"
+                        placeholder="Last name"
+                        className="mt-1 w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        value={last_name}
+                        onChange={(e) => setLastname(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Email</label>
+                    <input
+                      type="email"
+                      placeholder="you@example.com"
+                      className="mt-1 w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Country</label>
+                    <select
+                      id="country"
+                      className="mt-1 w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+                      value={country}
+                      onChange={(e) => setCountry(e.target.value)}
+                    >
+                      <option value="">Choose a country (optional)</option>
+                      {Object.entries(countryList).map(([code, name]) => (
+                        <option key={code} value={code}>
+                          {name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Password</label>
+                    <input
+                      type="password"
+                      placeholder="Create a password"
+                      className="mt-1 w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                    <p className="mt-1 text-xs text-gray-500">At least 8 characters.</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Confirm password</label>
+                    <input
+                      type="password"
+                      placeholder="Confirm password"
+                      className="mt-1 w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+                  
+                  <button
+                    type="submit"
+                    className="w-full bg-teal-500 py-3 text-white text-lg font-semibold rounded-lg hover:bg-teal-600 transition"
+                  >
+                    Create account
+                  </button>
+                </form>
+
+                <div className="text-center mt-4 text-sm text-gray-600">
+                  Already have an account?{' '}
+                  <button
                     onClick={() => navigate('/login')}
-                    className="text-blue-500 hover:underline"
-                >
-                    Login here
-                </button>
-          </div>
+                    className="text-teal-600 hover:underline"
+                  >
+                    Sign in
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
-      </div>
     );
 };
 

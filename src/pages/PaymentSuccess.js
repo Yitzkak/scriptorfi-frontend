@@ -10,29 +10,84 @@ const PaymentSuccess = () => {
 
   useEffect(() => {
     const executePayment = async () => {
+      const paystackReference = searchParams.get("reference") || sessionStorage.getItem("paystack_reference");
+      if (paystackReference) {
+        const paystackFileId = sessionStorage.getItem("paystack_file_id");
+        const paystackFileIdsRaw = sessionStorage.getItem("paystack_file_ids");
+        const paystackFileIds = paystackFileIdsRaw ? JSON.parse(paystackFileIdsRaw) : null;
+
+        if (!paystackFileId && (!paystackFileIds || paystackFileIds.length === 0)) {
+          setStatus("error");
+          setMessage("Missing payment information");
+          return;
+        }
+
+        try {
+          const response = await api.post("/api/payment/paystack/verify/", {
+            reference: paystackReference,
+            file_id: paystackFileId || undefined,
+            file_ids: paystackFileIds && paystackFileIds.length > 0 ? paystackFileIds : undefined,
+          });
+
+          setStatus("success");
+          setMessage(response.data.message || "Payment successful!");
+
+          sessionStorage.removeItem("paystack_file_id");
+          sessionStorage.removeItem("paystack_file_ids");
+          sessionStorage.removeItem("paystack_reference");
+          localStorage.removeItem("checkoutFileList");
+          localStorage.removeItem("uploadExistingFiles");
+
+          setTimeout(() => {
+            navigate("/dashboard/my-transcriptions");
+          }, 3000);
+        } catch (error) {
+          console.error("Payment verification error:", error);
+          setStatus("error");
+          setMessage(error.response?.data?.error || "Payment failed");
+        }
+        return;
+      }
+
       const paymentId = searchParams.get("paymentId") || sessionStorage.getItem("paypal_payment_id");
       const payerId = searchParams.get("PayerID");
       const fileId = sessionStorage.getItem("paypal_file_id");
+      const fileIdsRaw = sessionStorage.getItem("paypal_file_ids");
+      const fileIds = fileIdsRaw ? JSON.parse(fileIdsRaw) : null;
 
-      if (!paymentId || !payerId || !fileId) {
+      if (!paymentId || !payerId || (!fileId && (!fileIds || fileIds.length === 0))) {
         setStatus("error");
         setMessage("Missing payment information");
         return;
       }
 
       try {
-        const response = await api.post("http://localhost:8000/api/payment/execute/", {
-          payment_id: paymentId,
-          payer_id: payerId,
-          file_id: fileId,
-        });
+        const response = await api.post(
+          fileIds && fileIds.length > 0
+            ? "/api/payment/execute-batch/"
+            : "/api/payment/execute/",
+          fileIds && fileIds.length > 0
+            ? {
+                payment_id: paymentId,
+                payer_id: payerId,
+                file_ids: fileIds,
+              }
+            : {
+                payment_id: paymentId,
+                payer_id: payerId,
+                file_id: fileId,
+              }
+        );
 
         setStatus("success");
         setMessage(response.data.message || "Payment successful!");
         
         // Clear session storage
         sessionStorage.removeItem("paypal_file_id");
+        sessionStorage.removeItem("paypal_file_ids");
         sessionStorage.removeItem("paypal_payment_id");
+        localStorage.removeItem("checkoutFileList");
+        localStorage.removeItem("uploadExistingFiles");
 
         // Redirect to transcriptions after 3 seconds
         setTimeout(() => {
