@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from '../authContext';
 
 
 function Login() {
+      const { login } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState(null);
@@ -40,6 +42,20 @@ function Login() {
                 const data = await response.json();
               const storage = rememberMe ? localStorage : sessionStorage;
               storage.setItem('accessToken', data.access);
+                  // Fetch user profile after login
+                  const profileResponse = await fetch(`${process.env.REACT_APP_API_URL || "http://localhost:8000"}/api/user-profile/`, {
+                    method: 'GET',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${data.access}`
+                    }
+                  });
+                  if (profileResponse.ok) {
+                    const profileData = await profileResponse.json();
+                    // Store user info in context and localStorage
+                    login(profileData);
+                    storage.setItem('user', JSON.stringify(profileData));
+                  }
               storage.setItem('refreshToken', data.refresh);
               storage.setItem('role', 'user');
                 

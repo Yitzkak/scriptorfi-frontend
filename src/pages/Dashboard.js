@@ -15,6 +15,7 @@ import api from '../api/api';
 
 const Dashboard = () => {
     const { user } = useAuth();
+    const displayName = user?.first_name || (user?.email?.split('@')[0] || 'User');
     const [stats, setStats] = useState({
         totalFiles: 0,
         pendingFiles: 0,
@@ -87,7 +88,7 @@ const Dashboard = () => {
             <div className="bg-gradient-to-r from-mint-green to-teal-400 text-white">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     <h1 className="text-3xl md:text-4xl font-bold mb-2">
-                        Welcome back, {user?.email?.split('@')[0] || 'User'}! 👋
+                        Welcome back, {displayName}! 👋
                     </h1>
                     <p className="text-teal-50 text-lg">Here's what's happening with your transcriptions today.</p>
                 </div>

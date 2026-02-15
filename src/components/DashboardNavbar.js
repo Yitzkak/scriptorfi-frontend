@@ -15,6 +15,7 @@ const DashboardNavbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const displayName = user?.first_name || (user?.email?.split('@')[0] || 'User');
   const { unreadNotificationsCount } = useNotifications();
   const dropdownRef = useRef(null);
 
@@ -106,7 +107,7 @@ const DashboardNavbar = () => {
                 </div>
                 <div className="hidden md:block text-left">
                   <p className="text-sm font-medium text-gray-700">
-                    {user?.email?.split('@')[0] || 'User'}
+                    {displayName}
                   </p>
                   <p className="text-xs text-gray-500">User Account</p>
                 </div>
@@ -128,7 +129,7 @@ const DashboardNavbar = () => {
                   {/* User Info */}
                   <div className="px-4 py-3 border-b border-gray-100">
                     <p className="text-sm font-medium text-gray-900">
-                      {user?.email?.split('@')[0] || 'User'}
+                      {displayName}
                     </p>
                     <p className="text-xs text-gray-500 mt-1 truncate">{user?.email}</p>
                   </div>
