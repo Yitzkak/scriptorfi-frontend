@@ -72,17 +72,16 @@ const FilesUpload = () => {
     const uploadedFiles = Array.from(event.target.files);
     setUploading(true);
     setUploadProgress(0);
-    // Only allow one file at a time for simplicity
     const file = uploadedFiles[0];
     const duration = await getAudioDuration(file);
     setFiles([{ file, name: file.name, preview: URL.createObjectURL(file), duration }]);
     setTotalDuration(duration);
     setTotalCost(calculateTotalCost(duration));
 
-    // Chunked upload
     const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
     const uploadId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     let uploadedChunks = 0;
+    let uploadResponse = null;
 
     for (let i = 0; i < totalChunks; i++) {
       const start = i * CHUNK_SIZE;
@@ -93,7 +92,6 @@ const FilesUpload = () => {
       formData.append('chunk_index', i);
       formData.append('total_chunks', totalChunks);
       formData.append('upload_id', uploadId);
-      // Add metadata only for first chunk
       if (i === 0) {
         formData.append('metadata', JSON.stringify({
           name: file.name,
@@ -108,7 +106,10 @@ const FilesUpload = () => {
         }));
       }
       try {
-        await api.post('/api/files/upload/chunked/', formData);
+        const response = await api.post('/api/files/upload/chunked/', formData);
+        if (i === totalChunks - 1 && response.data && response.data.id) {
+          uploadResponse = response.data;
+        }
         uploadedChunks++;
         setUploadProgress(Math.round((uploadedChunks / totalChunks) * 100));
       } catch (error) {
@@ -120,7 +121,10 @@ const FilesUpload = () => {
     }
     setUploading(false);
     setUploadProgress(100);
-    setUploadedFileId(uploadId);
+    if (uploadResponse && uploadResponse.id) {
+      setUploadedFileId(uploadResponse.id);
+      localStorage.setItem('pendingUploadId', uploadResponse.id.toString());
+    }
   };
 
   // Remove file
