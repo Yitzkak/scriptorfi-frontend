@@ -32,9 +32,13 @@ const FilesUpload = () => {
   const [urlFile, setUrlFile] = useState("");
   const [loading, setLoading] = useState(false);
   const [freeTrialActive, setFreeTrialActive] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploading, setUploading] = useState(false);
+  const [uploadedFileId, setUploadedFileId] = useState(null);
 
   const PRICE_PER_MINUTE = 0.5;
   const FREE_TRIAL_SECONDS = 5 * 60;
+  const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB
 
   useEffect(() => {
     const isFreeTrial = location.state?.freeTrial || sessionStorage.getItem('freeTrialActive') === 'true';
@@ -66,26 +70,57 @@ const FilesUpload = () => {
 
   const handleFileUpload = async (event) => {
     const uploadedFiles = Array.from(event.target.files);
-    
-    const audioFiles = await Promise.all(
-      uploadedFiles.map(async (file) => {
-        const duration = await getAudioDuration(file);
-        return {
-          file,
+    setUploading(true);
+    setUploadProgress(0);
+    // Only allow one file at a time for simplicity
+    const file = uploadedFiles[0];
+    const duration = await getAudioDuration(file);
+    setFiles([{ file, name: file.name, preview: URL.createObjectURL(file), duration }]);
+    setTotalDuration(duration);
+    setTotalCost(calculateTotalCost(duration));
+
+    // Chunked upload
+    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+    const uploadId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    let uploadedChunks = 0;
+
+    for (let i = 0; i < totalChunks; i++) {
+      const start = i * CHUNK_SIZE;
+      const end = Math.min(file.size, (i + 1) * CHUNK_SIZE);
+      const chunk = file.slice(start, end);
+      const formData = new FormData();
+      formData.append('chunk', chunk);
+      formData.append('chunk_index', i);
+      formData.append('total_chunks', totalChunks);
+      formData.append('upload_id', uploadId);
+      // Add metadata only for first chunk
+      if (i === 0) {
+        formData.append('metadata', JSON.stringify({
           name: file.name,
-          preview: URL.createObjectURL(file),
+          size: file.size,
           duration,
-        };
-      })
-    );
-
-    setFiles([...files, ...audioFiles]);
-
-    // Recalculate total duration and cost
-    const allFiles = [...files, ...audioFiles];
-    const total = allFiles.reduce((acc, file) => acc + file.duration, 0);
-    setTotalDuration(total);
-    setTotalCost(calculateTotalCost(total));
+          verbatim: verbatim ? "Yes" : "No",
+          rush_order: rushOrder ? "Yes" : "No",
+          timestamp: timestamp ? "Yes" : "No",
+          spelling: accent,
+          instruction: instructions,
+          total_cost: Math.round(calculateTotalCost(duration)),
+        }));
+      }
+      try {
+        await api.post('/api/files/upload/chunked/', formData);
+        uploadedChunks++;
+        setUploadProgress(Math.round((uploadedChunks / totalChunks) * 100));
+      } catch (error) {
+        alert('Failed to upload chunk. Please try again.');
+        setUploading(false);
+        setUploadProgress(0);
+        return;
+      }
+    }
+    setUploading(false);
+    setUploadProgress(100);
+    setUploadedFileId(uploadId);
   };
 
   // Remove file
@@ -143,53 +178,26 @@ const FilesUpload = () => {
 
   // Handle checkout - Upload anonymously and proceed
   const handleCheckout = async () => {
-    if (files.length === 0) {
-      alert("Please upload at least one file before proceeding.");
+    if (!uploadedFileId) {
+      alert("Please upload a file before proceeding.");
       return;
     }
-
     setLoading(true);
-
     try {
-      const file = files[0];
-      const formData = new FormData();
-      formData.append("file", file.file);
-      formData.append("name", file.name);
-      formData.append("size", totalDuration.toString());
-      formData.append("total_cost", Math.round(totalCost));
-      formData.append("verbatim", verbatim ? "Yes" : "No");
-      formData.append("rush_order", rushOrder ? "Yes" : "No");
-      formData.append("timestamp", timestamp ? "Yes" : "No");
-      formData.append("spelling", accent);
-      formData.append("instruction", instructions);
-
-      // Upload anonymously (no authentication required)
-      const response = await api.post("/api/files/upload/anonymous/", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      const data = response.data;
-      
-      // Store the upload ID in localStorage
-      localStorage.setItem('pendingUploadId', data.id.toString());
-
       if (freeTrialActive) {
         sessionStorage.removeItem('freeTrialActive');
       }
-
-      // Check if user is authenticated
       if (!user) {
         // Not authenticated - redirect to register
         navigate('/register', { state: { from: '/upload', message: 'Create an account to complete your upload' } });
       } else {
         // User is authenticated - claim the upload and go to payment
-        await api.post("/api/files/claim/", { upload_id: data.id });
+        await api.post("/api/files/claim/", { upload_id: uploadedFileId });
         localStorage.removeItem('pendingUploadId'); // Clear after claiming
-        navigate("/dashboard/payment", { state: { fileData: data } });
+        navigate("/dashboard/payment", { state: { fileId: uploadedFileId } });
       }
     } catch (error) {
-      console.error("Upload error:", error);
-      alert("Failed to upload file. Please try again.");
+      alert("Failed to proceed to payment. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -412,20 +420,10 @@ const FilesUpload = () => {
 
               <button
                 onClick={handleCheckout}
-                disabled={files.length === 0 || loading}
-                className="w-full bg-white text-mint-green py-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-200 flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={uploading || !uploadedFileId}
+                className={`w-full mt-4 py-3 px-6 rounded-lg font-semibold text-white bg-mint-green transition-opacity duration-300 ${uploading || !uploadedFileId ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-mint-green"></div>
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    {user ? 'Proceed to Payment' : 'Next'}
-                    <FiCheckIcon className="w-5 h-5" />
-                  </>
-                )}
+                Proceed to Payment
               </button>
 
               <div className="mt-6 pt-6 border-t border-white border-opacity-20">
