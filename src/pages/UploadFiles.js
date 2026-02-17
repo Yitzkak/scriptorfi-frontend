@@ -40,6 +40,8 @@ const UploadFiles = () => {
   const REMOVED_LIST_STORAGE_KEY = "removedFileIds";
   const [claiming, setClaiming] = useState(false);
   const [freeTrialActive, setFreeTrialActive] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState({}); // Track upload status per file
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -173,19 +175,78 @@ const UploadFiles = () => {
     });
   };
 
-  // Create an audio object
+  // Upload a single file
+  const uploadSingleFile = async (fileItem) => {
+    const fileId = fileItem.id;
+    setUploadStatus(prev => ({ ...prev, [fileId]: { status: 'uploading', progress: 0 } }));
+    
+    try {
+      const formattedValues = Object.fromEntries(
+        Object.entries(checkboxValues).map(([key, value]) => [key, value ? "Yes" : "No"])
+      );
+      
+      const perFileCosts = calculatePerFileCosts([fileItem]);
+      const formData = new FormData();
+      formData.append("file", fileItem.file);
+      formData.append("name", fileItem.name);
+      formData.append("size", fileItem.duration.toString());
+      formData.append("total_cost", perFileCosts[0].toFixed(2));
+      if (freeTrialActive) {
+        formData.append("free_trial", "true");
+      }
+      formData.append("verbatim", formattedValues.verbatim);
+      formData.append("rush_order", formattedValues.rushOrder);
+      formData.append("timestamp", formattedValues.timestamp);
+      formData.append("spelling", options.spellingType);
+      formData.append("instruction", options.instructions);
+      
+      setUploadStatus(prev => ({ ...prev, [fileId]: { status: 'uploading', progress: 50 } }));
+      
+      const response = await api.post("/api/files/upload/", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        onUploadProgress: (progressEvent) => {
+          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          setUploadStatus(prev => ({ ...prev, [fileId]: { status: 'uploading', progress } }));
+        }
+      });
+      
+      setUploadStatus(prev => ({ ...prev, [fileId]: { status: 'completed', progress: 100, uploadedData: response.data } }));
+      setFiles(prev => prev.map(f => 
+        f.id === fileId ? { ...f, status: 'completed', uploadedData: response.data } : f
+      ));
+      
+      return response.data;
+    } catch (error) {
+      console.error("Upload error:", error);
+      setUploadStatus(prev => ({ ...prev, [fileId]: { status: 'error', progress: 0 } }));
+      setFiles(prev => prev.map(f => 
+        f.id === fileId ? { ...f, status: 'error' } : f
+      ));
+      throw error;
+    }
+  };
+
+  // Create an audio object and auto-upload
   const onDrop = async (acceptedFiles) => {
+    if (acceptedFiles.length === 0) return;
+    
+    setUploading(true);
+    
     const audioFiles = await Promise.all(
-      acceptedFiles.map(async (file) => {
+      acceptedFiles.map(async (file, index) => {
         const duration = await getAudioDuration(file);
+        const fileId = `${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9)}`;
         return {
           file,
           name: file.name,
           preview: URL.createObjectURL(file),
-          duration, // Add duration in seconds
+          duration,
+          id: fileId,
+          status: 'pending'
         };
       })
     );
+    
     setFiles((prevFiles) => [...prevFiles, ...audioFiles]);
 
     // Recalculate total duration and cost
@@ -193,6 +254,17 @@ const UploadFiles = () => {
     const totalDuration = allFiles.reduce((acc, file) => acc + file.duration, 0);
     setTotalDuration(totalDuration);
     setTotalCost(calculateTotalCost(totalDuration));
+
+    // Auto-upload all new files
+    try {
+      await Promise.all(audioFiles.map(fileItem => uploadSingleFile(fileItem)));
+    } catch (error) {
+      const errorMessage = error.response?.data?.error || "Failed to upload some files.";
+      setMessage(errorMessage);
+      setMessageType("error");
+    } finally {
+      setUploading(false);
+    }
   };
   const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
@@ -207,17 +279,11 @@ const UploadFiles = () => {
       const response = await fetch(urlFile); // Fetch the audio file from the URL
       const blob = await response.blob();
       const file = new File([blob], "audio_from_url.mp3", { type: blob.type });
-      const duration = await getAudioDuration(file);
-      const newFile = { file, name: file.name, preview: URL.createObjectURL(file), duration };
-
-      setFiles((prevFiles) => [...prevFiles, newFile]);
-
-      const totalDuration = files.reduce((acc, file) => acc + file.duration, 0) + duration;
-      setTotalDuration(totalDuration);
-      setTotalCost(calculateTotalCost(totalDuration));
-
+      
+      // Create a fake event to reuse onDrop logic
+      const fakeAcceptedFiles = [file];
       setUrlFile(""); // Reset URL input
-      alert("File added from URL successfully.");
+      await onDrop(fakeAcceptedFiles);
     } catch (error) {
       console.error("Error uploading file from URL:", error);
       alert("Failed to add file from URL.");
@@ -230,12 +296,27 @@ const UploadFiles = () => {
     setOptions((prevOptions) => ({ ...prevOptions, [name]: value }));
   };
 
-  // Handle audio upload
+  // Handle proceed to payment (files should already be uploaded)
   const handleUpload = async () => {
-    console.log("Upload button clicked!");
-
     if (freeTrialActive && files.length > 1) {
       alert("Free trial allows one file up to 5 minutes.");
+      return;
+    }
+
+    // Check if all files are uploaded
+    const allFilesUploaded = files.every(f => uploadStatus[f.id]?.status === 'completed' || f.uploadedData);
+    const hasUploadingFiles = files.some(f => uploadStatus[f.id]?.status === 'uploading');
+    const hasErrorFiles = files.some(f => uploadStatus[f.id]?.status === 'error');
+
+    if (hasUploadingFiles) {
+      setMessage("Please wait for all files to finish uploading.");
+      setMessageType("error");
+      return;
+    }
+
+    if (hasErrorFiles) {
+      setMessage("Some files failed to upload. Please remove them and try again.");
+      setMessageType("error");
       return;
     }
 
@@ -244,48 +325,19 @@ const UploadFiles = () => {
       return;
     }
 
-    console.log("Files to upload:", files);
-
-    const formattedValues = Object.fromEntries(
-      Object.entries(checkboxValues).map(([key, value]) => [key, value ? "Yes" : "No"])
-    );
-
-    console.log("Sending upload request...");
-
     try {
-      let uploadedFiles = [];
-      if (files.length > 0) {
-        const perFileCosts = calculatePerFileCosts(files);
-        const uploadPromises = files.map((fileItem, index) => {
-          const formData = new FormData();
-          formData.append("file", fileItem.file);
-          formData.append("name", fileItem.name);
-          formData.append("size", fileItem.duration.toString());
-          formData.append("total_cost", Math.round(perFileCosts[index]));
-          if (freeTrialActive) {
-            formData.append("free_trial", "true");
-          }
-          formData.append("verbatim", formattedValues.verbatim);
-          formData.append("rush_order", formattedValues.rushOrder);
-          formData.append("timestamp", formattedValues.timestamp);
-          formData.append("spelling", options.spellingType);
-          formData.append("instruction", options.instructions);
-          return api.post("/api/files/upload/", formData, {
-            headers: { "Content-Type": "multipart/form-data" },
-          });
-        });
-
-        const responses = await Promise.all(uploadPromises);
-        uploadedFiles = responses.map((res) => res.data);
-      }
+      // Get uploaded file data
+      const uploadedFiles = files
+        .filter(f => uploadStatus[f.id]?.status === 'completed' || f.uploadedData)
+        .map(f => f.uploadedData || uploadStatus[f.id]?.uploadedData);
 
       if (freeTrialActive) {
         sessionStorage.removeItem('freeTrialActive');
         setFreeTrialActive(false);
       }
+      
       const combinedFiles = [...existingFiles, ...uploadedFiles];
-      console.log("Upload successful:", combinedFiles);
-
+      
       // Clear pending upload data from localStorage
       localStorage.removeItem('pendingUpload');
 
@@ -302,13 +354,8 @@ const UploadFiles = () => {
       localStorage.setItem(UPLOAD_LIST_STORAGE_KEY, JSON.stringify(combinedFiles));
       navigate("/dashboard/payment", { state: { fileDataList: combinedFiles } });
     } catch (error) {
-      console.error("Upload error:", error);
-      console.error("Error response:", error.response);
-      const errorMessage = error.response?.data?.error || "Failed to upload file.";
-      if (errorMessage === "Free trial already used") {
-        sessionStorage.removeItem('freeTrialActive');
-        setFreeTrialActive(false);
-      }
+      console.error("Error:", error);
+      const errorMessage = error.response?.data?.error || "Failed to proceed.";
       setMessage(errorMessage);
       setMessageType("error");
     }
@@ -316,8 +363,18 @@ const UploadFiles = () => {
 
   // Function to remove a file
   const removeFile = (index) => {
+    const fileToRemove = files[index];
     const newFiles = files.filter((_, i) => i !== index);
     setFiles(newFiles);
+    
+    // Remove from upload status
+    if (fileToRemove?.id) {
+      setUploadStatus(prev => {
+        const newStatus = { ...prev };
+        delete newStatus[fileToRemove.id];
+        return newStatus;
+      });
+    }
     
     // Recalculate total duration and cost
     const totalDuration = newFiles.reduce((acc, file) => acc + file.duration, 0);
@@ -530,30 +587,74 @@ const UploadFiles = () => {
                       </div>
                     </div>
                   ))}
-                  {files.map((file, index) => (
-                    <div 
-                      key={index} 
-                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group"
-                    >
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="bg-mint-green bg-opacity-10 p-2 rounded-lg">
-                          <FiMusic className="text-mint-green w-5 h-5" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-900 truncate">{file.name}</p>
-                          <p className="text-sm text-gray-500">
-                            {Math.ceil(file.duration / 60)} min • ${((file.duration / 60) * PRICE_PER_MINUTE).toFixed(2)}
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => removeFile(index)}
-                        className="ml-4 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                  {files.map((file, index) => {
+                    const fileStatus = uploadStatus[file.id] || { status: file.status || 'pending', progress: file.progress || 0 };
+                    const isUploading = fileStatus.status === 'uploading';
+                    const isCompleted = fileStatus.status === 'completed';
+                    const isError = fileStatus.status === 'error';
+                    
+                    return (
+                      <div 
+                        key={file.id || index} 
+                        className="flex flex-col p-4 bg-gray-50 rounded-lg border-2 border-gray-200 hover:border-mint-green transition-colors group"
                       >
-                        <FiX className="w-5 h-5" />
-                      </button>
-                    </div>
-                  ))}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className={`bg-mint-green bg-opacity-10 p-2 rounded-lg ${isUploading ? 'animate-pulse' : ''}`}>
+                              {isUploading ? (
+                                <FiUpload className="text-mint-green w-5 h-5" />
+                              ) : isCompleted ? (
+                                <FiCheck className="text-green-500 w-5 h-5" />
+                              ) : isError ? (
+                                <FiX className="text-red-500 w-5 h-5" />
+                              ) : (
+                                <FiMusic className="text-mint-green w-5 h-5" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-gray-900 truncate">{file.name}</p>
+                              <p className="text-sm text-gray-500">
+                                {Math.ceil(file.duration / 60)} min • ${((file.duration / 60) * PRICE_PER_MINUTE).toFixed(2)}
+                              </p>
+                            </div>
+                          </div>
+                          {!isUploading && (
+                            <button
+                              onClick={() => removeFile(index)}
+                              className="ml-4 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            >
+                              <FiX className="w-5 h-5" />
+                            </button>
+                          )}
+                        </div>
+                        {isUploading && (
+                          <div className="mt-3">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-xs text-gray-600">Uploading...</span>
+                              <span className="text-xs font-medium text-mint-green">{fileStatus.progress}%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                              <div
+                                className="bg-gradient-to-r from-mint-green to-teal-500 h-2 rounded-full transition-all duration-300 ease-out"
+                                style={{ width: `${fileStatus.progress}%` }}
+                              />
+                            </div>
+                          </div>
+                        )}
+                        {isCompleted && (
+                          <div className="mt-2 text-xs text-green-600 font-medium flex items-center gap-1">
+                            <FiCheck className="w-4 h-4" />
+                            Upload complete
+                          </div>
+                        )}
+                        {isError && (
+                          <div className="mt-2 text-xs text-red-600 font-medium">
+                            Upload failed. Please try again.
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -705,9 +806,16 @@ const UploadFiles = () => {
               {totalFileCount > 0 ? (
                 <button
                   onClick={handleUpload}
-                  className="w-full bg-white text-mint-green py-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-200 flex items-center justify-center gap-2 shadow-lg"
+                  disabled={uploading || files.some(f => uploadStatus[f.id]?.status === 'uploading' || uploadStatus[f.id]?.status === 'error')}
+                  className={`w-full bg-white text-mint-green py-4 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg ${
+                    uploading || files.some(f => uploadStatus[f.id]?.status === 'uploading' || uploadStatus[f.id]?.status === 'error')
+                      ? 'opacity-50 cursor-not-allowed bg-gray-200 text-gray-500'
+                      : 'hover:bg-gray-100'
+                  }`}
                 >
-                  Proceed to Payment
+                  {uploading || files.some(f => uploadStatus[f.id]?.status === 'uploading') 
+                    ? 'Uploading...' 
+                    : 'Proceed to Payment'}
                   <FiCheck className="w-5 h-5" />
                 </button>
               ) : (

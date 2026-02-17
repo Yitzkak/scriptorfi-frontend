@@ -35,6 +35,7 @@ const FilesUpload = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [uploadedFileId, setUploadedFileId] = useState(null);
+  const [uploadStatus, setUploadStatus] = useState({}); // Track upload status per file
 
   const PRICE_PER_MINUTE = 0.5;
   const FREE_TRIAL_SECONDS = 5 * 60;
@@ -70,60 +71,105 @@ const FilesUpload = () => {
 
   const handleFileUpload = async (event) => {
     const uploadedFiles = Array.from(event.target.files);
-    setUploading(true);
-    setUploadProgress(0);
+    if (uploadedFiles.length === 0) return;
+
     const file = uploadedFiles[0];
+    
+    // Calculate duration first
     const duration = await getAudioDuration(file);
-    setFiles([{ file, name: file.name, preview: URL.createObjectURL(file), duration }]);
+    const fileId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Add file to state immediately
+    const fileItem = {
+      file,
+      name: file.name,
+      preview: URL.createObjectURL(file),
+      duration,
+      id: fileId,
+      status: 'uploading',
+      progress: 0
+    };
+    
+    setFiles([fileItem]);
     setTotalDuration(duration);
     setTotalCost(calculateTotalCost(duration));
+    setUploading(true);
+    setUploadStatus({ [fileId]: { status: 'uploading', progress: 0 } });
 
+    // Start chunked upload
     const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-    const uploadId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const uploadId = fileId;
     let uploadedChunks = 0;
     let uploadResponse = null;
+    let uploadError = null;
 
-    for (let i = 0; i < totalChunks; i++) {
-      const start = i * CHUNK_SIZE;
-      const end = Math.min(file.size, (i + 1) * CHUNK_SIZE);
-      const chunk = file.slice(start, end);
-      const formData = new FormData();
-      formData.append('chunk', chunk);
-      formData.append('chunk_index', i);
-      formData.append('total_chunks', totalChunks);
-      formData.append('upload_id', uploadId);
-      if (i === 0) {
-        formData.append('metadata', JSON.stringify({
-          name: file.name,
-          size: file.size,
-          duration,
-          verbatim: verbatim ? "Yes" : "No",
-          rush_order: rushOrder ? "Yes" : "No",
-          timestamp: timestamp ? "Yes" : "No",
-          spelling: accent,
-          instruction: instructions,
-          total_cost: Math.round(calculateTotalCost(duration)),
-        }));
-      }
-      try {
-        const response = await api.post('/api/files/upload/chunked/', formData);
-        if (i === totalChunks - 1 && response.data && response.data.id) {
+    try {
+      for (let i = 0; i < totalChunks; i++) {
+        const start = i * CHUNK_SIZE;
+        const end = Math.min(file.size, (i + 1) * CHUNK_SIZE);
+        const chunk = file.slice(start, end);
+        const formData = new FormData();
+        formData.append('chunk', chunk);
+        formData.append('chunk_index', i);
+        formData.append('total_chunks', totalChunks);
+        formData.append('upload_id', uploadId);
+        
+        if (i === 0) {
+          formData.append('metadata', JSON.stringify({
+            name: file.name,
+            size: file.size,
+            duration,
+            verbatim: verbatim ? "Yes" : "No",
+            rush_order: rushOrder ? "Yes" : "No",
+            timestamp: timestamp ? "Yes" : "No",
+            spelling: accent,
+            instruction: instructions,
+            total_cost: calculateTotalCost(duration).toFixed(2),
+          }));
+        }
+        
+        const response = await api.post('/api/files/upload/chunked/', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        
+        if (response.data && response.data.id) {
           uploadResponse = response.data;
         }
+        
         uploadedChunks++;
-        setUploadProgress(Math.round((uploadedChunks / totalChunks) * 100));
-      } catch (error) {
-        alert('Failed to upload chunk. Please try again.');
-        setUploading(false);
-        setUploadProgress(0);
-        return;
+        const progress = Math.round((uploadedChunks / totalChunks) * 100);
+        setUploadProgress(progress);
+        setUploadStatus({ [fileId]: { status: 'uploading', progress } });
+        
+        // Update file item progress
+        setFiles(prev => prev.map(f => 
+          f.id === fileId ? { ...f, progress } : f
+        ));
       }
-    }
-    setUploading(false);
-    setUploadProgress(100);
-    if (uploadResponse && uploadResponse.id) {
-      setUploadedFileId(uploadResponse.id);
-      localStorage.setItem('pendingUploadId', uploadResponse.id.toString());
+      
+      if (uploadResponse && uploadResponse.id) {
+        setUploadedFileId(uploadResponse.id);
+        localStorage.setItem('pendingUploadId', uploadResponse.id.toString());
+        setUploadStatus({ [fileId]: { status: 'completed', progress: 100 } });
+        setFiles(prev => prev.map(f => 
+          f.id === fileId ? { ...f, status: 'completed', progress: 100, uploadedId: uploadResponse.id } : f
+        ));
+      } else {
+        throw new Error('Upload completed but no file ID received');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      uploadError = error.response?.data?.error || 'Failed to upload file. Please try again.';
+      setUploadStatus({ [fileId]: { status: 'error', progress: 0 } });
+      setFiles(prev => prev.map(f => 
+        f.id === fileId ? { ...f, status: 'error' } : f
+      ));
+      alert(uploadError);
+    } finally {
+      setUploading(false);
+      if (!uploadError) {
+        setUploadProgress(100);
+      }
     }
   };
 
@@ -148,22 +194,16 @@ const FilesUpload = () => {
       const response = await fetch(urlFile);
       const blob = await response.blob();
       const file = new File([blob], "audio_from_url.mp3", { type: blob.type });
-      const duration = await getAudioDuration(file);
       
-      const newFile = {
-        file,
-        name: file.name,
-        preview: URL.createObjectURL(file),
-        duration
+      // Create a file input event-like object to reuse handleFileUpload logic
+      const fakeEvent = {
+        target: {
+          files: [file]
+        }
       };
-
-      setFiles([...files, newFile]);
-
-      const total = [...files, newFile].reduce((acc, f) => acc + f.duration, 0);
-      setTotalDuration(total);
-      setTotalCost(calculateTotalCost(total));
+      
       setUrlFile("");
-      alert("File added from URL successfully.");
+      await handleFileUpload(fakeEvent);
     } catch (error) {
       console.error("Error uploading file from URL:", error);
       alert("Failed to add file from URL.");
@@ -268,25 +308,71 @@ const FilesUpload = () => {
                 <div className="mt-6">
                   <h3 className="font-medium text-gray-900 mb-3">Selected Files ({files.length})</h3>
                   <div className="space-y-2">
-                    {files.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <FiMusic className="text-mint-green w-5 h-5 flex-shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-gray-900 truncate">{file.name}</p>
-                            <p className="text-sm text-gray-500">
-                              {Math.ceil(file.duration / 60)} min • ${((file.duration / 60) * PRICE_PER_MINUTE).toFixed(2)}
-                            </p>
+                    {files.map((file, index) => {
+                      const fileStatus = uploadStatus[file.id] || { status: file.status || 'pending', progress: file.progress || 0 };
+                      const isUploading = fileStatus.status === 'uploading';
+                      const isCompleted = fileStatus.status === 'completed';
+                      const isError = fileStatus.status === 'error';
+                      
+                      return (
+                        <div key={file.id || index} className="flex flex-col p-3 bg-gray-50 rounded-lg border-2 border-gray-200 hover:border-mint-green transition-colors">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <div className={`flex-shrink-0 ${isUploading ? 'animate-spin' : ''}`}>
+                                {isUploading ? (
+                                  <FiUpload className="text-mint-green w-5 h-5" />
+                                ) : isCompleted ? (
+                                  <FiCheckIcon className="text-green-500 w-5 h-5" />
+                                ) : isError ? (
+                                  <FiX className="text-red-500 w-5 h-5" />
+                                ) : (
+                                  <FiMusic className="text-mint-green w-5 h-5" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-gray-900 truncate">{file.name}</p>
+                                <p className="text-sm text-gray-500">
+                                  {Math.ceil(file.duration / 60)} min • ${((file.duration / 60) * PRICE_PER_MINUTE).toFixed(2)}
+                                </p>
+                              </div>
+                            </div>
+                            {!isUploading && (
+                              <button
+                                onClick={() => removeFile(index)}
+                                className="ml-4 p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                              >
+                                <FiX className="w-5 h-5" />
+                              </button>
+                            )}
                           </div>
+                          {isUploading && (
+                            <div className="mt-3">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-xs text-gray-600">Uploading...</span>
+                                <span className="text-xs font-medium text-mint-green">{fileStatus.progress}%</span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                <div
+                                  className="bg-gradient-to-r from-mint-green to-teal-500 h-2 rounded-full transition-all duration-300 ease-out"
+                                  style={{ width: `${fileStatus.progress}%` }}
+                                />
+                              </div>
+                            </div>
+                          )}
+                          {isCompleted && (
+                            <div className="mt-2 text-xs text-green-600 font-medium flex items-center gap-1">
+                              <FiCheckIcon className="w-4 h-4" />
+                              Upload complete
+                            </div>
+                          )}
+                          {isError && (
+                            <div className="mt-2 text-xs text-red-600 font-medium">
+                              Upload failed. Please try again.
+                            </div>
+                          )}
                         </div>
-                        <button
-                          onClick={() => removeFile(index)}
-                          className="ml-4 p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <FiX className="w-5 h-5" />
-                        </button>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -424,10 +510,14 @@ const FilesUpload = () => {
 
               <button
                 onClick={handleCheckout}
-                disabled={uploading || !uploadedFileId}
-                className={`w-full mt-4 py-3 px-6 rounded-lg font-semibold text-white bg-mint-green transition-opacity duration-300 ${uploading || !uploadedFileId ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={uploading || !uploadedFileId || files.some(f => uploadStatus[f.id]?.status === 'uploading' || uploadStatus[f.id]?.status === 'error')}
+                className={`w-full mt-4 py-3 px-6 rounded-lg font-semibold text-white transition-opacity duration-300 ${
+                  uploading || !uploadedFileId || files.some(f => uploadStatus[f.id]?.status === 'uploading' || uploadStatus[f.id]?.status === 'error')
+                    ? 'opacity-50 cursor-not-allowed bg-gray-400' 
+                    : 'bg-mint-green hover:bg-teal-600'
+                }`}
               >
-                Proceed to Payment
+                {uploading ? `Uploading... ${uploadProgress}%` : 'Proceed to Payment'}
               </button>
 
               <div className="mt-6 pt-6 border-t border-white border-opacity-20">
