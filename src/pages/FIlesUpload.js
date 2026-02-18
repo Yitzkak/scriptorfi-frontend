@@ -40,6 +40,9 @@ const FilesUpload = () => {
   const PRICE_PER_MINUTE = 0.5;
   const FREE_TRIAL_SECONDS = 5 * 60;
   const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB
+  const [currency, setCurrency] = useState('USD');
+  const [exchangeRate, setExchangeRate] = useState(1);
+  const [availableCurrencies, setAvailableCurrencies] = useState(['USD']);
 
   useEffect(() => {
     const isFreeTrial = location.state?.freeTrial || sessionStorage.getItem('freeTrialActive') === 'true';
@@ -52,11 +55,29 @@ const FilesUpload = () => {
     }
   }, [freeTrialActive, user, navigate]);
 
+  useEffect(() => {
+    fetch('https://api.exchangerate-api.com/v4/latest/USD')
+      .then(res => res.json())
+      .then(data => {
+        setAvailableCurrencies(Object.keys(data.rates));
+        if (currency !== 'USD') {
+          setExchangeRate(data.rates[currency] || 1);
+        } else {
+          setExchangeRate(1);
+        }
+      })
+      .catch(() => {
+        setAvailableCurrencies(['USD']);
+        setExchangeRate(1);
+      });
+  }, [currency]);
+
   const calculateTotalCost = (totalSeconds) => {
     const billableSeconds = freeTrialActive
       ? Math.max(0, totalSeconds - FREE_TRIAL_SECONDS)
       : totalSeconds;
-    return (billableSeconds / 60) * PRICE_PER_MINUTE;
+    const pricePerMinute = PRICE_PER_MINUTE * exchangeRate;
+    return (billableSeconds / 60) * pricePerMinute;
   };
 
   // Get audio duration
@@ -494,17 +515,23 @@ const FilesUpload = () => {
                     <span className="text-lg font-medium">Total Cost</span>
                   </div>
                   <span className="text-3xl font-bold">
-                    ${calculateTotal()}
+                    {currency} {totalCost.toFixed(2)}
                   </span>
                 </div>
               </div>
 
               {freeTrialActive && (
-                <div className="mb-4 rounded-lg bg-white/15 border border-white/30 px-4 py-3 text-sm text-white">
-                  <p className="font-semibold">Free Trial Applied</p>
-                  <p className="text-white/90">
-                    The first 5 minutes of audio are free. Any time beyond 5 minutes is billed at ${PRICE_PER_MINUTE}/min.
-                  </p>
+                <div className="mb-4 flex items-center gap-4">
+                  <label className="font-semibold">Currency:</label>
+                  <select
+                    value={currency}
+                    onChange={e => setCurrency(e.target.value)}
+                    className="border rounded px-2 py-1"
+                  >
+                    {availableCurrencies.map(cur => (
+                      <option key={cur} value={cur}>{cur}</option>
+                    ))}
+                  </select>
                 </div>
               )}
 

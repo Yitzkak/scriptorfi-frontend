@@ -24,10 +24,30 @@ const Dashboard = () => {
     });
     const [recentFiles, setRecentFiles] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [currency, setCurrency] = useState('USD');
+    const [exchangeRate, setExchangeRate] = useState(1);
+    const [availableCurrencies, setAvailableCurrencies] = useState(['USD']);
 
     useEffect(() => {
         fetchDashboardData();
     }, []);
+
+    useEffect(() => {
+        fetch('https://api.exchangerate-api.com/v4/latest/USD')
+            .then(res => res.json())
+            .then(data => {
+                setAvailableCurrencies(Object.keys(data.rates));
+                if (currency !== 'USD') {
+                    setExchangeRate(data.rates[currency] || 1);
+                } else {
+                    setExchangeRate(1);
+                }
+            })
+            .catch(() => {
+                setAvailableCurrencies(['USD']);
+                setExchangeRate(1);
+            });
+    }, [currency]);
 
     const fetchDashboardData = async () => {
         try {
@@ -122,7 +142,7 @@ const Dashboard = () => {
                     <StatCard 
                         icon={FiDollarSign}
                         title="Total Spent"
-                        value={loading ? '...' : `$${stats.totalSpent.toFixed(2)}`}
+                        value={loading ? '...' : `${currency} ${(stats.totalSpent * exchangeRate).toFixed(2)}`}
                         color="text-purple-600"
                         bgColor="bg-purple-50"
                     />
@@ -201,7 +221,7 @@ const Dashboard = () => {
                                                 {file.status}
                                             </span>
                                             <span className="text-sm font-semibold text-gray-900">
-                                                ${file.total_cost}
+                                                {currency} {(file.total_cost * exchangeRate).toFixed(2)}
                                             </span>
                                         </div>
                                     </div>

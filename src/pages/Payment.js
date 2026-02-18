@@ -18,6 +18,26 @@ const Payment = () => {
   const [paystackEmail, setPaystackEmail] = useState("");
   const [paystackLoading, setPaystackLoading] = useState(false);
   const [paypalLoading, setPaypalLoading] = useState(false);
+  const [currency, setCurrency] = useState('USD');
+  const [exchangeRate, setExchangeRate] = useState(1);
+  const [availableCurrencies, setAvailableCurrencies] = useState(['USD']);
+
+  useEffect(() => {
+    fetch('https://api.exchangerate-api.com/v4/latest/USD')
+      .then(res => res.json())
+      .then(data => {
+        setAvailableCurrencies(Object.keys(data.rates));
+        if (currency !== 'USD') {
+          setExchangeRate(data.rates[currency] || 1);
+        } else {
+          setExchangeRate(1);
+        }
+      })
+      .catch(() => {
+        setAvailableCurrencies(['USD']);
+        setExchangeRate(1);
+      });
+  }, [currency]);
 
   const removeFileFromSummary = async (fileId) => {
     const removedRaw = localStorage.getItem(REMOVED_LIST_STORAGE_KEY);
@@ -378,6 +398,19 @@ const Payment = () => {
                 <p className="text-xs text-gray-500 text-center">
                   Pay securely with PayPal
                 </p>
+              </div>
+
+              <div className="mb-4 flex items-center gap-4">
+                <label className="font-semibold">Currency:</label>
+                <select
+                  value={currency}
+                  onChange={e => setCurrency(e.target.value)}
+                  className="border rounded px-2 py-1"
+                >
+                  {availableCurrencies.map(cur => (
+                    <option key={cur} value={cur}>{cur}</option>
+                  ))}
+                </select>
               </div>
 
               {/* Cancel Button */}
