@@ -6,16 +6,6 @@ import api from "../api/api";
 import Alert from "../components/ui/Alert";
 import { 
   FiUser, 
-   useEffect(() => {
-     fetch('https://api.exchangerate-api.com/v4/latest/USD')
-       .then(res => res.json())
-       .then(data => {
-         setAvailableCurrencies(Object.keys(data.rates));
-       })
-       .catch(() => {
-         setAvailableCurrencies(['USD']);
-       });
-   }, []);
   FiMail, 
   FiLock, 
   FiGlobe,
