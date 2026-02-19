@@ -6,6 +6,16 @@ import api from "../api/api";
 import Alert from "../components/ui/Alert";
 import { 
   FiUser, 
+   useEffect(() => {
+     fetch('https://api.exchangerate-api.com/v4/latest/USD')
+       .then(res => res.json())
+       .then(data => {
+         setAvailableCurrencies(Object.keys(data.rates));
+       })
+       .catch(() => {
+         setAvailableCurrencies(['USD']);
+       });
+   }, []);
   FiMail, 
   FiLock, 
   FiGlobe,
@@ -17,12 +27,40 @@ import {
 
 countries.registerLocale(enLocale);
 
+// Helper for persistent currency
+const getInitialCurrency = () => {
+  return localStorage.getItem('userCurrency') || 'USD';
+};
+
 const Settings = () => {
-  const [formData, setFormData] = useState({
-    first_name: "",
-    last_name: "",
-    email: "",
-    country: "",
+    // Currency state for settings
+    const [currency, setCurrency] = useState(getInitialCurrency());
+    const [availableCurrencies, setAvailableCurrencies] = useState(['USD']);
+
+    // Fetch available currencies
+    useEffect(() => {
+      fetch('https://api.exchangerate-api.com/v4/latest/USD')
+        .then(res => res.json())
+        .then(data => {
+          setAvailableCurrencies(Object.keys(data.rates));
+   useEffect(() => {
+     api
+       .get("http://127.0.0.1:8000/api/user-profile/")
+       .then((response) => {
+         setFormData({
+           ...formData,
+           first_name: response.data.first_name,
+           last_name:  response.data.last_name,
+           email: response.data.email,
+           country: response.data.country
+         });
+         if (response.data.currency) {
+           setCurrency(response.data.currency);
+           localStorage.setItem('userCurrency', response.data.currency);
+         }
+       })
+       .catch((error) => console.error(error));
+   }, []);
     oldPassword: "",
     newPassword: "",
     confirmPassword: "",
@@ -138,6 +176,20 @@ const Settings = () => {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Currency Selector */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6 p-6">
+          <h2 className="text-lg font-semibold mb-2 flex items-center gap-2"><FiGlobe className="text-mint-green" />Currency Preference</h2>
+          <p className="text-sm text-gray-600 mb-4">Choose your preferred currency for all prices and payments. This will be used everywhere in your account.</p>
+          <select
+            value={currency}
+            onChange={e => setCurrency(e.target.value)}
+            className="border rounded px-3 py-2"
+          >
+            {availableCurrencies.map(cur => (
+              <option key={cur} value={cur}>{cur}</option>
+            ))}
+          </select>
+        </div>
         {/* Tab Navigation */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
           <div className="border-b border-gray-200">

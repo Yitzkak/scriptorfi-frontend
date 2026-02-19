@@ -18,9 +18,13 @@ const Payment = () => {
   const [paystackEmail, setPaystackEmail] = useState("");
   const [paystackLoading, setPaystackLoading] = useState(false);
   const [paypalLoading, setPaypalLoading] = useState(false);
-  const [currency, setCurrency] = useState('USD');
+  const [currency, setCurrency] = useState(getInitialCurrency());
   const [exchangeRate, setExchangeRate] = useState(1);
   const [availableCurrencies, setAvailableCurrencies] = useState(['USD']);
+
+  useEffect(() => {
+    localStorage.setItem('userCurrency', currency);
+  }, [currency]);
 
   useEffect(() => {
     fetch('https://api.exchangerate-api.com/v4/latest/USD')
@@ -429,3 +433,7 @@ const Payment = () => {
 };
 
 export default Payment;
+
+const getInitialCurrency = () => {
+  return localStorage.getItem('userCurrency') || 'USD';
+};

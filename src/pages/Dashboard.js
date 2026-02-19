@@ -24,7 +24,7 @@ const Dashboard = () => {
     });
     const [recentFiles, setRecentFiles] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [currency, setCurrency] = useState('USD');
+    const [currency, setCurrency] = useState(getInitialCurrency());
     const [exchangeRate, setExchangeRate] = useState(1);
     const [availableCurrencies, setAvailableCurrencies] = useState(['USD']);
 
@@ -49,6 +49,10 @@ const Dashboard = () => {
             });
     }, [currency]);
 
+    useEffect(() => {
+        localStorage.setItem('userCurrency', currency);
+    }, [currency]);
+
     const fetchDashboardData = async () => {
         try {
             const response = await api.get('/files/');
@@ -68,6 +72,10 @@ const Dashboard = () => {
             console.error('Error fetching dashboard data:', error);
             setLoading(false);
         }
+    };
+
+    const getInitialCurrency = () => {
+        return localStorage.getItem('userCurrency') || 'USD';
     };
 
     const StatCard = ({ icon: Icon, title, value, color, bgColor, trend }) => (
