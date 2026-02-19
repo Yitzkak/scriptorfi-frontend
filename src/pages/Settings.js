@@ -23,34 +23,50 @@ const getInitialCurrency = () => {
 };
 
 const Settings = () => {
-    // Currency state for settings
-    const [currency, setCurrency] = useState(getInitialCurrency());
-    const [availableCurrencies, setAvailableCurrencies] = useState(['USD']);
+  // Currency state for settings
+  const [currency, setCurrency] = useState(getInitialCurrency());
+  const [availableCurrencies, setAvailableCurrencies] = useState(['USD']);
+  const [formData, setFormData] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    country: "",
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
 
-    // Fetch available currencies
-    useEffect(() => {
-      fetch('https://api.exchangerate-api.com/v4/latest/USD')
-        .then(res => res.json())
-        .then(data => {
-          setAvailableCurrencies(Object.keys(data.rates));
-   useEffect(() => {
-     api
-       .get("http://127.0.0.1:8000/api/user-profile/")
-       .then((response) => {
-         setFormData({
-           ...formData,
-           first_name: response.data.first_name,
-           last_name:  response.data.last_name,
-           email: response.data.email,
-           country: response.data.country
-         });
-         if (response.data.currency) {
-           setCurrency(response.data.currency);
-           localStorage.setItem('userCurrency', response.data.currency);
-         }
-       })
-       .catch((error) => console.error(error));
-   }, []);
+  // Fetch available currencies
+  useEffect(() => {
+    fetch('https://api.exchangerate-api.com/v4/latest/USD')
+      .then(res => res.json())
+      .then(data => {
+        setAvailableCurrencies(Object.keys(data.rates));
+      })
+      .catch(() => {
+        setAvailableCurrencies(['USD']);
+      });
+  }, []);
+
+  // Fetch user profile and currency
+  useEffect(() => {
+    api
+      .get("http://127.0.0.1:8000/api/user-profile/")
+      .then((response) => {
+        setFormData({
+          ...formData,
+          first_name: response.data.first_name,
+          last_name:  response.data.last_name,
+          email: response.data.email,
+          country: response.data.country
+        });
+        if (response.data.currency) {
+          setCurrency(response.data.currency);
+          localStorage.setItem('userCurrency', response.data.currency);
+        }
+      })
+      .catch((error) => console.error(error));
+  }, []);
 
   // ...existing code...
 
