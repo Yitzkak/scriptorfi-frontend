@@ -51,10 +51,8 @@ const Settings = () => {
        })
        .catch((error) => console.error(error));
    }, []);
-    oldPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
+
+  // ...existing code...
 
   const [loading, setLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
