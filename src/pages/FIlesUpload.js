@@ -1,17 +1,4 @@
-// Helper to get currency symbol
-const getCurrencySymbol = (cur) => {
-  const symbols = {
-    USD: '$',
-    EUR: '€',
-    GBP: '£',
-    JPY: '¥',
-    INR: '₹',
-    AUD: 'A$',
-    CAD: 'C$',
-    // Add more as needed
-  };
-  return symbols[cur] || cur + ' ';
-};
+
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../authContext";
@@ -29,6 +16,7 @@ import {
   FiX
 } from "react-icons/fi";
 import { FaCoins } from "react-icons/fa";
+import getSymbolFromCurrency from 'currency-symbol-map';
 
 const FilesUpload = () => {
   const navigate = useNavigate();
@@ -564,7 +552,7 @@ const FilesUpload = () => {
                     <span className="text-lg font-medium">Total Cost</span>
                   </div>
                   <span className="text-3xl font-bold">
-                    {getCurrencySymbol(currency)}{totalCost.toFixed(2)} {currency}
+                    {getSymbolFromCurrency(currency) || currency + ' '}{totalCost.toFixed(2)} {currency}
                   </span>
                 </div>
               </div>
@@ -615,7 +603,7 @@ const FilesUpload = () => {
                   ✓ 99% accuracy guarantee
                 </p>
                 <p className="text-xs text-center mt-4 text-white text-opacity-70">
-                  Rate: {getCurrencySymbol(currency)}{(PRICE_PER_MINUTE * exchangeRate).toFixed(2)}/{currency}/minute
+                  Rate: {getSymbolFromCurrency(currency) || currency + ' '}{(PRICE_PER_MINUTE * exchangeRate).toFixed(2)}/{currency}/minute
                 </p>
               </div>
             </div>
