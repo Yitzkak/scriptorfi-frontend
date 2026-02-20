@@ -42,20 +42,39 @@ const Payment = () => {
   }, []);
 
   useEffect(() => {
-    fetch('https://api.exchangerate-api.com/v4/latest/USD')
-      .then(res => res.json())
-      .then(data => {
-        setAvailableCurrencies(Object.keys(data.rates));
-        if (currency !== 'USD') {
-          setExchangeRate(data.rates[currency] || 1);
-        } else {
-          setExchangeRate(1);
+    const fetchExchangeRate = async () => {
+      try {
+        const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+        const data = await response.json();
+        
+        if (data.rates) {
+          // Add USD to the list since it's the base currency
+          const currencies = ['USD', ...Object.keys(data.rates)].sort();
+          setAvailableCurrencies(currencies);
+          
+          if (currency && currency !== 'USD') {
+            const rate = data.rates[currency];
+            if (rate) {
+              setExchangeRate(rate);
+              console.log(`Exchange rate for ${currency}: ${rate}`);
+            } else {
+              console.warn(`Exchange rate not found for ${currency}, using 1`);
+              setExchangeRate(1);
+            }
+          } else {
+            setExchangeRate(1);
+          }
         }
-      })
-      .catch(() => {
+      } catch (error) {
+        console.error('Error fetching exchange rates:', error);
         setAvailableCurrencies(['USD']);
         setExchangeRate(1);
-      });
+      }
+    };
+    
+    if (currency) {
+      fetchExchangeRate();
+    }
   }, [currency]);
 
   const removeFileFromSummary = async (fileId) => {
@@ -426,7 +445,16 @@ const Payment = () => {
                 <label className="font-semibold">Currency:</label>
                 <select
                   value={currency}
-                  onChange={e => setCurrency(e.target.value)}
+                  onChange={async (e) => {
+                    const newCurrency = e.target.value;
+                    setCurrency(newCurrency);
+                    // Save currency preference to backend
+                    try {
+                      await api.put('/api/update-profile/', { currency: newCurrency });
+                    } catch (error) {
+                      console.error('Error saving currency preference:', error);
+                    }
+                  }}
                   className="border rounded px-2 py-1"
                 >
                   {availableCurrencies.map(cur => (
