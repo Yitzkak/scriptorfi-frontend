@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../authContext";
 import api from "../api/api";
 import Alert from "../components/ui/Alert";
 import { FiUpload, FiCheckCircle, FiFileText } from "react-icons/fi";
@@ -7,6 +8,7 @@ import { FiUpload, FiCheckCircle, FiFileText } from "react-icons/fi";
 const Payment = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [fileList, setFileList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState(null);
@@ -18,14 +20,10 @@ const Payment = () => {
   const [paystackEmail, setPaystackEmail] = useState("");
   const [paystackLoading, setPaystackLoading] = useState(false);
   const [paypalLoading, setPaypalLoading] = useState(false);
-  // Lazy init avoids TDZ issues (getInitialCurrency was previously defined after usage)
-  const [currency, setCurrency] = useState(() => localStorage.getItem('userCurrency') || 'USD');
+  // Currency preference comes from the user's profile; fall back to USD until it's available
+  const [currency, setCurrency] = useState(user?.currency || 'USD');
   const [exchangeRate, setExchangeRate] = useState(1);
   const [availableCurrencies, setAvailableCurrencies] = useState(['USD']);
-
-  useEffect(() => {
-    localStorage.setItem('userCurrency', currency);
-  }, [currency]);
 
   useEffect(() => {
     fetch('https://api.exchangerate-api.com/v4/latest/USD')

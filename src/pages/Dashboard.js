@@ -24,8 +24,8 @@ const Dashboard = () => {
     });
     const [recentFiles, setRecentFiles] = useState([]);
     const [loading, setLoading] = useState(true);
-    // Lazy init avoids re-reading localStorage each render and prevents TDZ issues in production builds.
-    const [currency, setCurrency] = useState(() => localStorage.getItem('userCurrency') || 'USD');
+    // Currency preference comes from the user's profile; fall back to USD until it's available
+    const [currency, setCurrency] = useState(user?.currency || 'USD');
     const [exchangeRate, setExchangeRate] = useState(1);
     const [availableCurrencies, setAvailableCurrencies] = useState(['USD']);
 
@@ -48,10 +48,6 @@ const Dashboard = () => {
                 setAvailableCurrencies(['USD']);
                 setExchangeRate(1);
             });
-    }, [currency]);
-
-    useEffect(() => {
-        localStorage.setItem('userCurrency', currency);
     }, [currency]);
 
     const fetchDashboardData = async () => {

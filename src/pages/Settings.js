@@ -17,14 +17,9 @@ import {
 
 countries.registerLocale(enLocale);
 
-// Helper for persistent currency
-const getInitialCurrency = () => {
-  return localStorage.getItem('userCurrency') || 'USD';
-};
-
 const Settings = () => {
-  // Currency state for settings
-  const [currency, setCurrency] = useState(getInitialCurrency());
+  // Currency state for settings (will be loaded from user profile)
+  const [currency, setCurrency] = useState("USD");
   const [availableCurrencies, setAvailableCurrencies] = useState(['USD']);
   const [formData, setFormData] = useState({
     first_name: "",
@@ -62,7 +57,8 @@ const Settings = () => {
         }));
         if (response.data.currency) {
           setCurrency(response.data.currency);
-          localStorage.setItem('userCurrency', response.data.currency);
+        } else {
+          setCurrency("USD");
         }
       })
       .catch((error) => console.error(error));
@@ -116,7 +112,8 @@ const Settings = () => {
           first_name: formData.first_name,
           last_name: formData.last_name,
           email: formData.email,
-          country: formData.country
+          country: formData.country,
+          currency: currency,
         }
       )
       .then((response) => {

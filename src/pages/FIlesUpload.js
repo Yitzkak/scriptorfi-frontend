@@ -40,8 +40,8 @@ const FilesUpload = () => {
   const PRICE_PER_MINUTE = 0.5;
   const FREE_TRIAL_SECONDS = 5 * 60;
   const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB
-  // Lazy init to avoid TDZ issues (and avoid reading localStorage on every render)
-  const [currency, setCurrency] = useState(() => localStorage.getItem('userCurrency') || 'USD');
+  // Currency preference comes from the user's profile; fall back to USD until it's available
+  const [currency, setCurrency] = useState(user?.currency || 'USD');
   const [exchangeRate, setExchangeRate] = useState(1);
   const [availableCurrencies, setAvailableCurrencies] = useState(['USD']);
 
@@ -71,10 +71,6 @@ const FilesUpload = () => {
         setAvailableCurrencies(['USD']);
         setExchangeRate(1);
       });
-  }, [currency]);
-
-  useEffect(() => {
-    localStorage.setItem('userCurrency', currency);
   }, [currency]);
 
   const calculateTotalCost = (totalSeconds) => {
