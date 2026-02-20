@@ -40,7 +40,8 @@ const FilesUpload = () => {
   const PRICE_PER_MINUTE = 0.5;
   const FREE_TRIAL_SECONDS = 5 * 60;
   const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB
-  const [currency, setCurrency] = useState(getInitialCurrency());
+  // Lazy init to avoid TDZ issues (and avoid reading localStorage on every render)
+  const [currency, setCurrency] = useState(() => localStorage.getItem('userCurrency') || 'USD');
   const [exchangeRate, setExchangeRate] = useState(1);
   const [availableCurrencies, setAvailableCurrencies] = useState(['USD']);
 
@@ -71,15 +72,6 @@ const FilesUpload = () => {
         setExchangeRate(1);
       });
   }, [currency]);
-
-  // Load currency from localStorage or default to USD
-  const getInitialCurrency = () => {
-    return localStorage.getItem('userCurrency') || 'USD';
-  };
-
-  useEffect(() => {
-    setCurrency(getInitialCurrency());
-  }, []);
 
   useEffect(() => {
     localStorage.setItem('userCurrency', currency);

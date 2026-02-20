@@ -54,8 +54,11 @@ const AudioPlayer = forwardRef(({ audioFile, volume, amplification = 1, speed, s
 
     // Add an event listener for mouse movement over the waveformRef container
     const handleMouseMove = (e) => {
+        if (!waveformRef.current || !wavesurfer.current) return;
         const rect = waveformRef.current.getBoundingClientRect();  // Get bounding box of the waveform container
+        if (!rect) return;
         const x = e.clientX - rect.left;  // Calculate mouse position relative to the waveform
+        if (rect.width === 0) return;
         const duration = wavesurfer.current.getDuration();  // Get audio duration
         const percent = x / rect.width;  // Calculate percent position of the mouse on the waveform
         const time = percent * duration;  // Convert percentage to time
@@ -77,22 +80,20 @@ const AudioPlayer = forwardRef(({ audioFile, volume, amplification = 1, speed, s
 
     // Add click event listener for waveform navigation
     const handleWaveformClick = (e) => {
-      console.log('handleWaveformClick called');
-      if (wavesurfer.current && onWaveformClick) {
-        console.log('wavesurfer and onWaveformClick exist');
+      if (wavesurfer.current && onWaveformClick && waveformRef.current) {
         const rect = waveformRef.current.getBoundingClientRect();
+        if (!rect) return;
         const x = e.clientX - rect.left;
+        if (rect.width === 0) return;
         const duration = wavesurfer.current.getDuration();
         const percent = x / rect.width;
         const time = percent * duration;
-        console.log('handleWaveformClick', time);
-        console.log('Calling onWaveformClick with time:', time);
         onWaveformClick(time);
-        console.log('onWaveformClick called successfully');
       } else {
-        console.log('Missing wavesurfer or onWaveformClick:', {
+        console.log('Missing wavesurfer, onWaveformClick, or waveformRef:', {
           hasWavesurfer: !!wavesurfer.current,
-          hasOnWaveformClick: !!onWaveformClick
+          hasOnWaveformClick: !!onWaveformClick,
+          hasWaveformRef: !!waveformRef.current
         });
       }
     };

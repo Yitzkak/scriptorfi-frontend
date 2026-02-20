@@ -24,7 +24,8 @@ const Dashboard = () => {
     });
     const [recentFiles, setRecentFiles] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [currency, setCurrency] = useState(getInitialCurrency());
+    // Lazy init avoids re-reading localStorage each render and prevents TDZ issues in production builds.
+    const [currency, setCurrency] = useState(() => localStorage.getItem('userCurrency') || 'USD');
     const [exchangeRate, setExchangeRate] = useState(1);
     const [availableCurrencies, setAvailableCurrencies] = useState(['USD']);
 
@@ -72,10 +73,6 @@ const Dashboard = () => {
             console.error('Error fetching dashboard data:', error);
             setLoading(false);
         }
-    };
-
-    const getInitialCurrency = () => {
-        return localStorage.getItem('userCurrency') || 'USD';
     };
 
     const StatCard = ({ icon: Icon, title, value, color, bgColor, trend }) => (

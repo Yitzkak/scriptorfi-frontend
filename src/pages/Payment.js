@@ -18,7 +18,8 @@ const Payment = () => {
   const [paystackEmail, setPaystackEmail] = useState("");
   const [paystackLoading, setPaystackLoading] = useState(false);
   const [paypalLoading, setPaypalLoading] = useState(false);
-  const [currency, setCurrency] = useState(getInitialCurrency());
+  // Lazy init avoids TDZ issues (getInitialCurrency was previously defined after usage)
+  const [currency, setCurrency] = useState(() => localStorage.getItem('userCurrency') || 'USD');
   const [exchangeRate, setExchangeRate] = useState(1);
   const [availableCurrencies, setAvailableCurrencies] = useState(['USD']);
 
@@ -433,7 +434,3 @@ const Payment = () => {
 };
 
 export default Payment;
-
-const getInitialCurrency = () => {
-  return localStorage.getItem('userCurrency') || 'USD';
-};

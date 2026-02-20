@@ -173,8 +173,11 @@ const MediaPlayer = forwardRef(({ mediaFile, volume, amplification = 1, speed, p
       document.body.appendChild(hoverTime);
 
       const handleWaveformMouseMove = (e) => {
+        if (!waveformRef.current || !wavesurfer.current) return;
         const rect = waveformRef.current.getBoundingClientRect();
+        if (!rect) return;
         const x = e.clientX - rect.left;
+        if (rect.width === 0) return;
         const duration = wavesurfer.current.getDuration();
         const percent = x / rect.width;
         const time = percent * duration;
@@ -192,9 +195,11 @@ const MediaPlayer = forwardRef(({ mediaFile, volume, amplification = 1, speed, p
       };
 
       const handleWaveformClick = (e) => {
-        if (wavesurfer.current && onWaveformClick) {
+        if (wavesurfer.current && onWaveformClick && waveformRef.current) {
           const rect = waveformRef.current.getBoundingClientRect();
+          if (!rect) return;
           const x = e.clientX - rect.left;
+          if (rect.width === 0) return;
           const duration = wavesurfer.current.getDuration();
           const percent = x / rect.width;
           const time = percent * duration;
