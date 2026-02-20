@@ -390,7 +390,7 @@ const FilesUpload = () => {
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium text-gray-900 truncate">{file.name}</p>
                                 <p className="text-sm text-gray-500">
-                                  {Math.ceil(file.duration / 60)} min • {currency} {(((file.duration / 60) * PRICE_PER_MINUTE) * exchangeRate).toFixed(2)}
+                                  {Math.ceil(file.duration / 60)} min • {getSymbolFromCurrency(currency) || currency + ' '}{(((file.duration / 60) * PRICE_PER_MINUTE) * exchangeRate).toFixed(2)} {currency}
                                 </p>
                               </div>
                             </div>
