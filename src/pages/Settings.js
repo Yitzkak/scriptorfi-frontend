@@ -64,6 +64,25 @@ const Settings = () => {
       .catch((error) => console.error(error));
   }, []);
 
+  // Save currency preference to backend immediately when changed
+  const [currencyInitialized, setCurrencyInitialized] = useState(false);
+  useEffect(() => {
+    if (currencyInitialized && currency) {
+      const saveCurrency = async () => {
+        try {
+          await api.put('/api/update-profile/', { currency });
+        } catch (error) {
+          console.error('Error saving currency preference:', error);
+        }
+      };
+      saveCurrency();
+    }
+  }, [currency, currencyInitialized]);
+
+  useEffect(() => {
+    setCurrencyInitialized(true);
+  }, []);
+
   // ...existing code...
 
   const [loading, setLoading] = useState(false);

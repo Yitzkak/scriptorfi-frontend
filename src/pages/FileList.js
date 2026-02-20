@@ -12,13 +12,15 @@ import {
   FiAlertCircle,
   FiFilter,
   FiSearch,
-  FiCalendar,
-  FiDollarSign
+  FiCalendar
 } from "react-icons/fi";
+import { FaCoins } from "react-icons/fa";
 import { HiOutlineDocumentText } from "react-icons/hi";
 import { BiTimeFive } from "react-icons/bi";
+import { useAuth } from "../authContext";
 
 const FileList = () => {
+    const { user } = useAuth();
     const [files, setFiles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState(null);
@@ -26,6 +28,38 @@ const FileList = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [filterStatus, setFilterStatus] = useState("all");
     const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
+    const [currency, setCurrency] = useState('USD');
+    const [exchangeRate, setExchangeRate] = useState(1);
+
+    // Load user profile to get currency preference
+    useEffect(() => {
+        const loadUserProfile = async () => {
+            try {
+                const response = await api.get('/api/user-profile/');
+                if (response.data.currency) {
+                    setCurrency(response.data.currency);
+                }
+            } catch (error) {
+                console.error('Error loading user profile:', error);
+            }
+        };
+        loadUserProfile();
+    }, []);
+
+    useEffect(() => {
+        fetch('https://api.exchangerate-api.com/v4/latest/USD')
+            .then(res => res.json())
+            .then(data => {
+                if (currency !== 'USD') {
+                    setExchangeRate(data.rates[currency] || 1);
+                } else {
+                    setExchangeRate(1);
+                }
+            })
+            .catch(() => {
+                setExchangeRate(1);
+            });
+    }, [currency]);
 
     // Fetch files
     useEffect(() => {
@@ -305,8 +339,8 @@ const FileList = () => {
                         {file.size} minutes
                       </div>
                       <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <FiDollarSign className="w-4 h-4" />
-                        ${file.total_cost}
+                        <FaCoins className="w-4 h-4" />
+                        {currency} {(Number(file.total_cost || 0) * exchangeRate).toFixed(2)}
                       </div>
                     </div>
 
@@ -385,8 +419,9 @@ const FileList = () => {
                             {file.status}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          ${file.total_cost}
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 flex items-center gap-1">
+                          <FaCoins className="w-4 h-4" />
+                          {currency} {(Number(file.total_cost || 0) * exchangeRate).toFixed(2)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex items-center justify-end gap-2">

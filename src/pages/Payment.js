@@ -4,6 +4,7 @@ import { useAuth } from "../authContext";
 import api from "../api/api";
 import Alert from "../components/ui/Alert";
 import { FiUpload, FiCheckCircle, FiFileText } from "react-icons/fi";
+import { FaCoins } from "react-icons/fa";
 
 const Payment = () => {
   const location = useLocation();
@@ -21,9 +22,24 @@ const Payment = () => {
   const [paystackLoading, setPaystackLoading] = useState(false);
   const [paypalLoading, setPaypalLoading] = useState(false);
   // Currency preference comes from the user's profile; fall back to USD until it's available
-  const [currency, setCurrency] = useState(user?.currency || 'USD');
+  const [currency, setCurrency] = useState('USD');
   const [exchangeRate, setExchangeRate] = useState(1);
   const [availableCurrencies, setAvailableCurrencies] = useState(['USD']);
+
+  // Load user profile to get currency preference
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      try {
+        const response = await api.get('/api/user-profile/');
+        if (response.data.currency) {
+          setCurrency(response.data.currency);
+        }
+      } catch (error) {
+        console.error('Error loading user profile:', error);
+      }
+    };
+    loadUserProfile();
+  }, []);
 
   useEffect(() => {
     fetch('https://api.exchangerate-api.com/v4/latest/USD')
@@ -298,7 +314,7 @@ const Payment = () => {
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="font-semibold text-gray-900">${Number(file.total_cost || 0).toFixed(2)}</span>
+                      <span className="font-semibold text-gray-900">{currency} {(Number(file.total_cost || 0) * exchangeRate).toFixed(2)}</span>
                       <button
                         onClick={() => removeFileFromSummary(file.id)}
                         className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
@@ -336,7 +352,10 @@ const Payment = () => {
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-gray-600">Total Amount</p>
-                  <p className="text-2xl font-bold text-mint-green">${totalCost.toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-mint-green flex items-center gap-2">
+                    <FaCoins className="w-6 h-6" />
+                    {currency} {(totalCost * exchangeRate).toFixed(2)}
+                  </p>
                 </div>
               </div>
             </div>

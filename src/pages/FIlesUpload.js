@@ -11,10 +11,10 @@ import {
   FiUpload, 
   FiCheck as FiCheckIcon,
   FiClock,
-  FiDollarSign,
   FiFile,
   FiX
 } from "react-icons/fi";
+import { FaCoins } from "react-icons/fa";
 
 const FilesUpload = () => {
   const navigate = useNavigate();
@@ -41,9 +41,24 @@ const FilesUpload = () => {
   const FREE_TRIAL_SECONDS = 5 * 60;
   const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB
   // Currency preference comes from the user's profile; fall back to USD until it's available
-  const [currency, setCurrency] = useState(user?.currency || 'USD');
+  const [currency, setCurrency] = useState('USD');
   const [exchangeRate, setExchangeRate] = useState(1);
   const [availableCurrencies, setAvailableCurrencies] = useState(['USD']);
+
+  // Load user profile to get currency preference
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      try {
+        const response = await api.get('/api/user-profile/');
+        if (response.data.currency) {
+          setCurrency(response.data.currency);
+        }
+      } catch (error) {
+        console.error('Error loading user profile:', error);
+      }
+    };
+    loadUserProfile();
+  }, []);
 
   useEffect(() => {
     const isFreeTrial = location.state?.freeTrial || sessionStorage.getItem('freeTrialActive') === 'true';
@@ -354,7 +369,7 @@ const FilesUpload = () => {
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium text-gray-900 truncate">{file.name}</p>
                                 <p className="text-sm text-gray-500">
-                                  {Math.ceil(file.duration / 60)} min • ${((file.duration / 60) * PRICE_PER_MINUTE).toFixed(2)}
+                                  {Math.ceil(file.duration / 60)} min • {currency} {(((file.duration / 60) * PRICE_PER_MINUTE) * exchangeRate).toFixed(2)}
                                 </p>
                               </div>
                             </div>
@@ -512,11 +527,11 @@ const FilesUpload = () => {
                 
                 <div className="flex items-center justify-between pt-2">
                   <div className="flex items-center gap-2">
-                    <FiDollarSign className="w-6 h-6" />
+                    <FaCoins className="w-6 h-6" />
                     <span className="text-lg font-medium">Total Cost</span>
                   </div>
                   <span className="text-3xl font-bold">
-                    {currency} {totalCost.toFixed(2)}
+                    {currency} {(totalCost * exchangeRate).toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -559,7 +574,7 @@ const FilesUpload = () => {
                   ✓ 99% accuracy guarantee
                 </p>
                 <p className="text-xs text-center mt-4 text-white text-opacity-70">
-                  Rate: ${PRICE_PER_MINUTE}/minute
+                  Rate: {currency} {(PRICE_PER_MINUTE * exchangeRate).toFixed(2)}/minute
                 </p>
               </div>
             </div>

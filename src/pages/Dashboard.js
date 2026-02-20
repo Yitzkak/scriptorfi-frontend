@@ -5,9 +5,9 @@ import {
   FiFileText, 
   FiClock, 
   FiCheckCircle, 
-  FiTrendingUp,
-  FiDollarSign 
+  FiTrendingUp
 } from 'react-icons/fi';
+import { FaCoins } from 'react-icons/fa';
 import { HiOutlineDocumentText } from 'react-icons/hi';
 import { BiTimeFive } from 'react-icons/bi';
 import { useAuth } from '../authContext';
@@ -25,9 +25,24 @@ const Dashboard = () => {
     const [recentFiles, setRecentFiles] = useState([]);
     const [loading, setLoading] = useState(true);
     // Currency preference comes from the user's profile; fall back to USD until it's available
-    const [currency, setCurrency] = useState(user?.currency || 'USD');
+    const [currency, setCurrency] = useState('USD');
     const [exchangeRate, setExchangeRate] = useState(1);
     const [availableCurrencies, setAvailableCurrencies] = useState(['USD']);
+
+    // Load user profile to get currency preference
+    useEffect(() => {
+        const loadUserProfile = async () => {
+            try {
+                const response = await api.get('/api/user-profile/');
+                if (response.data.currency) {
+                    setCurrency(response.data.currency);
+                }
+            } catch (error) {
+                console.error('Error loading user profile:', error);
+            }
+        };
+        loadUserProfile();
+    }, []);
 
     useEffect(() => {
         fetchDashboardData();
@@ -141,7 +156,7 @@ const Dashboard = () => {
                         trend="+12% this month"
                     />
                     <StatCard 
-                        icon={FiDollarSign}
+                        icon={FaCoins}
                         title="Total Spent"
                         value={loading ? '...' : `${currency} ${(stats.totalSpent * exchangeRate).toFixed(2)}`}
                         color="text-purple-600"
