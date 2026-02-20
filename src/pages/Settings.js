@@ -48,18 +48,18 @@ const Settings = () => {
       });
   }, []);
 
-  // Fetch user profile and currency
+  // Fetch user profile and currency (use relative path so it works in all environments)
   useEffect(() => {
     api
-      .get("http://127.0.0.1:8000/api/user-profile/")
+      .get("/api/user-profile/")
       .then((response) => {
-        setFormData({
-          ...formData,
+        setFormData((prev) => ({
+          ...prev,
           first_name: response.data.first_name,
           last_name:  response.data.last_name,
           email: response.data.email,
           country: response.data.country
-        });
+        }));
         if (response.data.currency) {
           setCurrency(response.data.currency);
           localStorage.setItem('userCurrency', response.data.currency);
@@ -81,18 +81,19 @@ const Settings = () => {
   const [messageType, setMessageType] = useState(null);
   const [activeTab, setActiveTab] = useState("profile"); // 'profile' or 'security'
 
+  // Duplicate profile fetch (keep behavior but fix URL and avoid stale closure)
   useEffect(() => {
     api
-      .get("http://127.0.0.1:8000/api/user-profile/")
+      .get("/api/user-profile/")
       .then((response) => {
         console.log("Data here", response.data);
-        setFormData({
-          ...formData,
+        setFormData((prev) => ({
+          ...prev,
           first_name: response.data.first_name,
           last_name:  response.data.last_name,
           email: response.data.email,
           country: response.data.country
-        });
+        }));
       })
       .catch((error) => console.error(error));
   }, []);
@@ -110,7 +111,7 @@ const Settings = () => {
   
     api
       .put(
-        "http://127.0.0.1:8000/api/update-profile/",
+        "/api/update-profile/",
         {
           first_name: formData.first_name,
           last_name: formData.last_name,
@@ -137,7 +138,7 @@ const Settings = () => {
 
     api
       .put(
-        "http://127.0.0.1:8000/api/update-password/",
+        "/api/update-password/",
         {
           old_password: formData.oldPassword,
           new_password: formData.newPassword,
