@@ -73,12 +73,6 @@ const FilesUpload = () => {
   }, [location.state]);
 
   useEffect(() => {
-    if (user) {
-      navigate('/dashboard/upload', { state: freeTrialActive ? { freeTrial: true } : undefined });
-    }
-  }, [freeTrialActive, user, navigate]);
-
-  useEffect(() => {
     const fetchExchangeRate = async () => {
       try {
         console.log('Fetching exchange rate for currency:', currency);
@@ -306,13 +300,17 @@ const FilesUpload = () => {
         navigate('/register', { state: { from: '/upload', message: 'Create an account to complete your upload' } });
       } else {
         // User is authenticated - claim the upload and go to payment
-        await api.post("/api/files/claim/", { upload_id: uploadedFileId });
+        console.log('Claiming upload with ID:', uploadedFileId);
+        const claimResponse = await api.post("/api/files/claim/", { upload_id: uploadedFileId });
+        console.log('Claim response:', claimResponse.data);
         localStorage.removeItem('pendingUploadId'); // Clear after claiming
+        console.log('Navigating to payment with fileId:', uploadedFileId);
         navigate("/dashboard/payment", { state: { fileId: uploadedFileId } });
       }
     } catch (error) {
-      alert("Failed to proceed to payment. Please try again.");
-    } finally {
+      console.error("Checkout error:", error);
+      const errorMessage = error.response?.data?.error || error.message || "Failed to proceed to payment. Please try again.";
+      alert(errorMessage);
       setLoading(false);
     }
   };
