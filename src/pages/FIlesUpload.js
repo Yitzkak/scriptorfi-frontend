@@ -119,8 +119,13 @@ const FilesUpload = () => {
     const billableSeconds = freeTrialActive
       ? Math.max(0, totalSeconds - FREE_TRIAL_SECONDS)
       : totalSeconds;
-    const pricePerMinute = PRICE_PER_MINUTE * exchangeRate;
+    const pricePerMinute = PRICE_PER_MINUTE;
     return (billableSeconds / 60) * pricePerMinute;
+  };
+  
+  const calculateTotalCostInCurrency = (totalSeconds) => {
+    const usdCost = calculateTotalCost(totalSeconds);
+    return usdCost * exchangeRate;
   };
 
   // Get audio duration
@@ -272,10 +277,6 @@ const FilesUpload = () => {
       console.error("Error uploading file from URL:", error);
       alert("Failed to add file from URL.");
     }
-  };
-
-  const calculateTotal = () => {
-    return totalCost.toFixed(2);
   };
 
   useEffect(() => {
@@ -562,7 +563,7 @@ const FilesUpload = () => {
                     <span className="text-lg font-medium">Total Cost</span>
                   </div>
                   <span className="text-3xl font-bold">
-                    {getSymbolFromCurrency(currency) || currency + ' '}{totalCost.toFixed(2)} {currency}
+                    {getSymbolFromCurrency(currency) || currency + ' '}{(totalCost * exchangeRate).toFixed(2)} {currency}
                   </span>
                 </div>
               </div>
