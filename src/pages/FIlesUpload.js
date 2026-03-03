@@ -304,8 +304,8 @@ const FilesUpload = () => {
         const claimResponse = await api.post("/api/files/claim/", { upload_id: uploadedFileId });
         console.log('Claim response:', claimResponse.data);
         localStorage.removeItem('pendingUploadId'); // Clear after claiming
-        console.log('Navigating to payment with fileId:', uploadedFileId);
-        navigate("/dashboard/payment", { state: { fileId: uploadedFileId } });
+        console.log('Navigating to payment with fileIds:', [uploadedFileId]);
+        navigate("/dashboard/payment", { state: { fileIds: [uploadedFileId] } });
       }
     } catch (error) {
       console.error("Checkout error:", error);
