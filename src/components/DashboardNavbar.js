@@ -67,9 +67,7 @@ const DashboardNavbar = () => {
           {/* Logo - Hidden on mobile when sidebar handles it */}
           <div className="hidden lg:flex items-center">
             <Link to="/" className="flex items-center gap-2">
-              <div className="bg-gradient-to-r from-mint-green to-teal-400 p-2 rounded-lg">
-                <span className="text-white font-bold text-xl">🎵</span>
-              </div>
+              <img src="/images/scriptorfi-logo-icon.png" alt="Scriptorfi Logo" className="h-8 w-8" />
               <span className="text-xl font-bold text-gray-800">Scriptorfi</span>
             </Link>
           </div>

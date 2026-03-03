@@ -57,7 +57,10 @@ const Sidebar = () => {
       <>
         {/* Logo/Brand */}
         <div className="px-6 py-6 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-800">Scriptorfi</h2>
+          <div className="flex items-center gap-2">
+            <img src="/images/scriptorfi-logo-icon.png" alt="Scriptorfi Logo" className="h-8 w-8" />
+            <h2 className="text-xl font-bold text-gray-800">Scriptorfi</h2>
+          </div>
           <p className="text-xs text-gray-500 mt-1">Transcription Platform</p>
         </div>
 
