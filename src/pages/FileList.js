@@ -352,7 +352,7 @@ const FileList = () => {
                       </div>
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <FiClock className="w-4 h-4" />
-                        {file.size} minutes
+                        {Math.ceil(Number(file.size) / 60)} minutes
                       </div>
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <FaCoins className="w-4 h-4" />
@@ -424,7 +424,7 @@ const FileList = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                          {file.size} min
+                          {Math.ceil(Number(file.size) / 60)} min
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                           {formatDate(file.date_uploaded || file.uploaded_at)}

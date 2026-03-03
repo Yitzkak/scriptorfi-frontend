@@ -186,8 +186,7 @@ const FilesUpload = () => {
         if (i === 0) {
           formData.append('metadata', JSON.stringify({
             name: file.name,
-            size: file.size,
-            duration,
+            duration,  // Audio duration in seconds
             verbatim: verbatim ? "Yes" : "No",
             rush_order: rushOrder ? "Yes" : "No",
             timestamp: timestamp ? "Yes" : "No",
