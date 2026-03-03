@@ -29,7 +29,7 @@ const Hero = () => {
             Free Trial
           </button>
           <button className="border border-black py-2 px-4 rounded font-semibold">
-            <Link to="/upload">Upload a file @ $0.5/min</Link> 
+            <Link to="/upload">Upload a file</Link> 
           </button>
         </div>
       </div>

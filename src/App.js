@@ -15,7 +15,6 @@ import Settings from './pages/Settings';
 import Payment from './pages/Payment';
 import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentCancel from './pages/PaymentCancel';
-import UploadFiles from './pages/UploadFiles';
 import MyTranscriptions from './pages/MyTranscriptions';
 import FileList from './pages/FileList';
 import SuperAdminLogin from './pages/superadmin/Login';
@@ -72,7 +71,7 @@ const router = createBrowserRouter([
       { path: "payment/success", element: <PaymentSuccess /> },
       { path: "payment/cancel", element: <PaymentCancel /> },
       { path: "contact", element: <Contact /> },
-      { path: "upload", element: <UploadFiles /> },
+      { path: "upload", element: <FilesUpload /> },
       { path: "my-transcriptions", element: <MyTranscriptions /> },
       { path: "files", element: <FileList /> },
       { path: "notifications", element: <Notifications /> },
