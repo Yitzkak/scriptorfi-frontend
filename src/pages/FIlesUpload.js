@@ -1,12 +1,9 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../authContext";
 import api from "../api/api";
-import { 
-  FaCloudUploadAlt, 
-  FaLink
-} from "react-icons/fa";
+import { FaCloudUploadAlt } from "react-icons/fa";
 import { 
   FiMusic, 
   FiUpload, 
@@ -33,13 +30,13 @@ const FilesUpload = () => {
   const [timestamp, setTimestamp] = useState(true);
   const [instructions, setInstructions] = useState("");
   const [accent, setAccent] = useState("US");
-  const [urlFile, setUrlFile] = useState("");
   const [loading, setLoading] = useState(false);
   const [freeTrialActive, setFreeTrialActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [uploadedFileId, setUploadedFileId] = useState(null);
-  const [uploadStatus, setUploadStatus] = useState({}); // Track upload status per file
+  const [uploadStatus, setUploadStatus] = useState({});
+  const cancelUploadRef = useRef(false); // set to true to abort an in-progress upload
 
   const PRICE_PER_MINUTE = 0.5;         // Manual transcription: $0.50/min
   const AUTO_PRICE_PER_MINUTE = 0.07;   // Auto transcription: $0.07/min
@@ -167,37 +164,32 @@ const FilesUpload = () => {
     if (uploadedFiles.length === 0) return;
 
     const file = uploadedFiles[0];
-    
-    // Calculate duration first
     const duration = await getAudioDuration(file);
     const fileId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    // Add file to state immediately
-    const fileItem = {
-      file,
-      name: file.name,
-      preview: URL.createObjectURL(file),
-      duration,
-      id: fileId,
-      status: 'uploading',
-      progress: 0
-    };
-    
+
+    // Reset all previous state
+    cancelUploadRef.current = false;
+    setUploadedFileId(null);
+    setUploadProgress(0);
+    setUploadStatus({ [fileId]: { status: 'uploading', progress: 0 } });
+    setUploading(true);
+    const fileItem = { file, name: file.name, duration, id: fileId, status: 'uploading', progress: 0 };
     setFiles([fileItem]);
     setTotalDuration(duration);
     setTotalCost(calculateTotalCost(duration));
-    setUploading(true);
-    setUploadStatus({ [fileId]: { status: 'uploading', progress: 0 } });
 
-    // Start chunked upload
+    // Start chunked upload immediately
     const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-    const uploadId = fileId;
     let uploadedChunks = 0;
     let uploadResponse = null;
-    let uploadError = null;
 
     try {
       for (let i = 0; i < totalChunks; i++) {
+        if (cancelUploadRef.current) {
+          // User cancelled — stop silently
+          return;
+        }
+
         const start = i * CHUNK_SIZE;
         const end = Math.min(file.size, (i + 1) * CHUNK_SIZE);
         const chunk = file.slice(start, end);
@@ -205,12 +197,12 @@ const FilesUpload = () => {
         formData.append('chunk', chunk);
         formData.append('chunk_index', i);
         formData.append('total_chunks', totalChunks);
-        formData.append('upload_id', uploadId);
-        
+        formData.append('upload_id', fileId);
+
         if (i === 0) {
           formData.append('metadata', JSON.stringify({
             name: file.name,
-            duration,  // Audio duration in seconds
+            duration,
             verbatim: verbatim ? "Yes" : "No",
             rush_order: rushOrder ? "Yes" : "No",
             timestamp: timestamp ? "Yes" : "No",
@@ -220,99 +212,68 @@ const FilesUpload = () => {
             transcription_type: transcriptionType,
           }));
         }
-        
-        // Retry each chunk up to 3 times to handle transient network/proxy errors
+
         let response = null;
-        const MAX_CHUNK_RETRIES = 3;
-        for (let attempt = 1; attempt <= MAX_CHUNK_RETRIES; attempt++) {
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          if (cancelUploadRef.current) return;
           try {
             response = await api.post('/api/files/upload/chunked/', formData, {
-              headers: { 'Content-Type': 'multipart/form-data' }
+              headers: { 'Content-Type': 'multipart/form-data' },
             });
-            break; // success
+            break;
           } catch (chunkErr) {
-            if (attempt === MAX_CHUNK_RETRIES) throw chunkErr;
-            // Wait briefly before retrying (500ms, 1s)
+            if (attempt === 3) throw chunkErr;
             await new Promise(res => setTimeout(res, attempt * 500));
           }
         }
-        
-        if (response && response.data && response.data.id) {
-          uploadResponse = response.data;
-        }
-        
+
+        if (response?.data?.id) uploadResponse = response.data;
+
         uploadedChunks++;
         const progress = Math.round((uploadedChunks / totalChunks) * 100);
         setUploadProgress(progress);
         setUploadStatus({ [fileId]: { status: 'uploading', progress } });
-        
-        // Update file item progress
-        setFiles(prev => prev.map(f => 
-          f.id === fileId ? { ...f, progress } : f
-        ));
+        setFiles(prev => prev.map(f => f.id === fileId ? { ...f, progress } : f));
       }
-      
-      if (uploadResponse && uploadResponse.id) {
-        setUploadedFileId(uploadResponse.id);
-        localStorage.setItem('pendingUploadId', uploadResponse.id.toString());
-        setUploadStatus({ [fileId]: { status: 'completed', progress: 100 } });
-        setFiles(prev => prev.map(f => 
-          f.id === fileId ? { ...f, status: 'completed', progress: 100, uploadedId: uploadResponse.id } : f
-        ));
-      } else {
-        throw new Error('Upload completed but no file ID received');
-      }
+
+      if (!uploadResponse?.id) throw new Error('Upload completed but no file ID received');
+
+      setUploadedFileId(uploadResponse.id);
+      localStorage.setItem('pendingUploadId', uploadResponse.id.toString());
+      setUploadStatus({ [fileId]: { status: 'completed', progress: 100 } });
+      setFiles(prev => prev.map(f => f.id === fileId ? { ...f, status: 'completed', progress: 100, uploadedId: uploadResponse.id } : f));
     } catch (error) {
+      if (cancelUploadRef.current) return; // cancelled, ignore error
       console.error('Upload error:', error);
-      uploadError = error.response?.data?.error || 'Failed to upload file. Please try again.';
+      const msg = error.response?.data?.error || 'Failed to upload file. Please try again.';
       setUploadStatus({ [fileId]: { status: 'error', progress: 0 } });
-      setFiles(prev => prev.map(f => 
-        f.id === fileId ? { ...f, status: 'error' } : f
-      ));
-      alert(uploadError);
+      setFiles(prev => prev.map(f => f.id === fileId ? { ...f, status: 'error' } : f));
+      alert(msg);
     } finally {
-      setUploading(false);
-      if (!uploadError) {
-        setUploadProgress(100);
-      }
+      if (!cancelUploadRef.current) setUploading(false);
     }
   };
 
-  // Remove file
+  // Cancel an in-progress upload and reset
+  const cancelUpload = () => {
+    cancelUploadRef.current = true;
+    setUploading(false);
+    setUploadedFileId(null);
+    setUploadProgress(0);
+    setUploadStatus({});
+    setFiles([]);
+    setTotalDuration(0);
+    setTotalCost(0);
+  };
+
+  // Remove a completed/errored file
   const removeFile = (index) => {
     const newFiles = files.filter((_, i) => i !== index);
     setFiles(newFiles);
-    
-    const total = newFiles.reduce((acc, file) => acc + file.duration, 0);
+    const total = newFiles.reduce((acc, f) => acc + f.duration, 0);
     setTotalDuration(total);
     setTotalCost(calculateTotalCost(total));
-  };
-
-  // Handle URL upload
-  const handleUrlUpload = async () => {
-    if (!urlFile) {
-      alert("Please enter a valid URL.");
-      return;
-    }
-
-    try {
-      const response = await fetch(urlFile);
-      const blob = await response.blob();
-      const file = new File([blob], "audio_from_url.mp3", { type: blob.type });
-      
-      // Create a file input event-like object to reuse handleFileUpload logic
-      const fakeEvent = {
-        target: {
-          files: [file]
-        }
-      };
-      
-      setUrlFile("");
-      await handleFileUpload(fakeEvent);
-    } catch (error) {
-      console.error("Error uploading file from URL:", error);
-      alert("Failed to add file from URL.");
-    }
+    setUploadedFileId(null);
   };
 
   useEffect(() => {
@@ -321,59 +282,50 @@ const FilesUpload = () => {
     setTotalCost(calculateTotalCost(total, transcriptionType));
   }, [freeTrialActive, files, exchangeRate, transcriptionType]);
 
-  // Handle checkout - Upload anonymously and proceed
+  // Handle checkout — file is already uploaded; just claim + navigate to payment
   const handleCheckout = async () => {
+    if (files.length === 0) {
+      alert("Please select a file before proceeding.");
+      return;
+    }
     if (!uploadedFileId) {
-      alert("Please upload a file before proceeding.");
+      alert("Please wait for the file to finish uploading.");
       return;
     }
     setLoading(true);
     try {
-      if (freeTrialActive) {
-        sessionStorage.removeItem('freeTrialActive');
-      }
+      if (freeTrialActive) sessionStorage.removeItem('freeTrialActive');
 
-      // Ensure the backend file has the current transcription type before payment.
-      // This handles the case where the user uploaded first (default 'manual') then
-      // switched to 'auto', or vice versa.
-      try {
-        await api.patch(`/api/files/${uploadedFileId}/transcription-type/`, {
-          transcription_type: transcriptionType,
-        });
-      } catch (patchErr) {
-        console.warn('Could not sync transcription type:', patchErr);
-      }
-
-      // Store auto-transcription flag so PaymentSuccess can trigger it
-      if (transcriptionType === 'auto' && uploadedFileId) {
+      if (transcriptionType === 'auto') {
         sessionStorage.setItem('auto_transcription_file_ids', JSON.stringify([uploadedFileId]));
       } else {
         sessionStorage.removeItem('auto_transcription_file_ids');
       }
+
       if (!user) {
-        // Not authenticated - redirect to register
         navigate('/register', { state: { from: '/upload', message: 'Create an account to complete your upload' } });
-      } else {
-        // User is authenticated - claim the upload and go to payment
-        console.log('Claiming upload with ID:', uploadedFileId);
-        const claimResponse = await api.post("/api/files/claim/", { upload_id: uploadedFileId });
-        console.log('Claim response:', claimResponse.data);
-        localStorage.removeItem('pendingUploadId'); // Clear after claiming
-        // Clear any stale checkout data so Payment page doesn't load old files
-        localStorage.removeItem('checkoutFileList');
-        localStorage.removeItem('uploadExistingFiles');
-        localStorage.removeItem('removedFileIds');
-        // Fetch the claimed file details so Payment can render immediately
-        const fileResponse = await api.get('/api/files/');
-        const claimedFile = fileResponse.data.find(f => f.id === uploadedFileId);
-        const fileData = claimedFile || { id: uploadedFileId, total_cost: calculateTotalCost(totalDuration, transcriptionType).toFixed(2), size: totalDuration, transcription_type: transcriptionType };
-        console.log('Navigating to payment with fileData:', fileData);
-        navigate("/dashboard/payment", { state: { fileData, fileIds: [uploadedFileId] } });
+        return;
       }
+
+      await api.post("/api/files/claim/", { upload_id: uploadedFileId });
+      localStorage.removeItem('pendingUploadId');
+      localStorage.removeItem('checkoutFileList');
+      localStorage.removeItem('uploadExistingFiles');
+      localStorage.removeItem('removedFileIds');
+
+      const fileResponse = await api.get('/api/files/');
+      const claimedFile = fileResponse.data.find(f => f.id === uploadedFileId);
+      const fileItem = files[0];
+      const fileData = claimedFile || {
+        id: uploadedFileId,
+        total_cost: calculateTotalCost(fileItem.duration, transcriptionType).toFixed(2),
+        size: fileItem.duration,
+        transcription_type: transcriptionType,
+      };
+      navigate("/dashboard/payment", { state: { fileData, fileIds: [uploadedFileId] } });
     } catch (error) {
       console.error("Checkout error:", error);
-      const errorMessage = error.response?.data?.error || error.message || "Failed to proceed to payment. Please try again.";
-      alert(errorMessage);
+      alert(error.response?.data?.error || error.message || "Failed to proceed to payment. Please try again.");
       setLoading(false);
     }
   };
@@ -396,51 +348,24 @@ const FilesUpload = () => {
             <div className="bg-white shadow-sm rounded-xl p-6 border border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <FiUpload className="text-mint-green" />
-                Upload Your Files
+                Upload Your File
               </h2>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                <label className="flex items-center gap-3 bg-gradient-to-r from-mint-green to-teal-500 p-4 rounded-lg cursor-pointer hover:shadow-lg transition-shadow group">
-                  <FaCloudUploadAlt className="text-2xl text-white group-hover:scale-110 transition-transform" />
-                  <span className="text-white font-medium">Upload from Computer</span>
-                  <input type="file" multiple accept="audio/*,video/*" onChange={handleFileUpload} className="hidden" />
-                </label>
-                
-                <button 
-                  onClick={() => document.getElementById('url-input').focus()}
-                  className="flex items-center gap-3 bg-gray-100 p-4 rounded-lg hover:bg-gray-200 transition-colors border border-gray-300"
-                >
-                  <FaLink className="text-2xl text-mint-green" /> 
-                  <span className="text-gray-700 font-medium">Upload from URL</span>
-                </button>
-              </div>
 
-              {/* URL Input */}
-              <div className="flex gap-2 mb-4">
-                <input
-                  id="url-input"
-                  type="text"
-                  placeholder="Enter audio file URL (e.g., https://...)"
-                  value={urlFile}
-                  onChange={(e) => setUrlFile(e.target.value)}
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mint-green focus:border-transparent"
-                />
-                <button
-                  onClick={handleUrlUpload}
-                  disabled={!urlFile}
-                  className="px-6 py-3 bg-mint-green text-white rounded-lg hover:bg-teal-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Add
-                </button>
-              </div>
+              <label className="flex items-center justify-center gap-3 bg-gradient-to-r from-mint-green to-teal-500 p-5 rounded-xl cursor-pointer hover:shadow-lg transition-shadow group mb-4">
+                <FaCloudUploadAlt className="text-3xl text-white group-hover:scale-110 transition-transform" />
+                <span className="text-white font-semibold text-lg">
+                  {files.length > 0 ? 'Change File' : 'Select Audio / Video File'}
+                </span>
+                <input type="file" accept="audio/*,video/*" onChange={handleFileUpload} className="hidden" />
+              </label>
 
               {/* Uploaded Files */}
               {files.length > 0 && (
                 <div className="mt-6">
-                  <h3 className="font-medium text-gray-900 mb-3">Selected Files ({files.length})</h3>
+                  <h3 className="font-medium text-gray-900 mb-3">Selected File</h3>
                   <div className="space-y-2">
                     {files.map((file, index) => {
-                      const fileStatus = uploadStatus[file.id] || { status: file.status || 'pending', progress: file.progress || 0 };
+                      const fileStatus = uploadStatus[file.id] || { status: file.status || 'ready', progress: file.progress || 0 };
                       const isUploading = fileStatus.status === 'uploading';
                       const isCompleted = fileStatus.status === 'completed';
                       const isError = fileStatus.status === 'error';
@@ -467,14 +392,14 @@ const FilesUpload = () => {
                                 </p>
                               </div>
                             </div>
-                            {!isUploading && (
-                              <button
-                                onClick={() => removeFile(index)}
-                                className="ml-4 p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                              >
-                                <FiX className="w-5 h-5" />
-                              </button>
-                            )}
+                            {/* X button — cancels upload while in progress, removes file when done */}
+                            <button
+                              onClick={isUploading ? cancelUpload : () => removeFile(index)}
+                              title={isUploading ? 'Cancel upload' : 'Remove file'}
+                              className="ml-4 p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                            >
+                              <FiX className="w-5 h-5" />
+                            </button>
                           </div>
                           {isUploading && (
                             <div className="mt-3">
@@ -509,10 +434,10 @@ const FilesUpload = () => {
               )}
 
               {files.length === 0 && (
-                <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+                <div className="text-center py-10 border-2 border-dashed border-gray-300 rounded-xl">
                   <FiFile className="mx-auto text-gray-400 w-12 h-12 mb-3" />
-                  <p className="text-gray-500">No files uploaded yet</p>
-                  <p className="text-sm text-gray-400 mt-1">Upload files to get started</p>
+                  <p className="text-gray-500 font-medium">No file selected yet</p>
+                  <p className="text-sm text-gray-400 mt-1">Supported: MP3, MP4, WAV, M4A and more</p>
                 </div>
               )}
             </div>
@@ -739,14 +664,14 @@ const FilesUpload = () => {
 
               <button
                 onClick={handleCheckout}
-                disabled={uploading || !uploadedFileId || files.some(f => uploadStatus[f.id]?.status === 'uploading' || uploadStatus[f.id]?.status === 'error')}
+                disabled={files.length === 0 || uploading || loading}
                 className={`w-full mt-4 py-3 px-6 rounded-lg font-semibold text-white transition-opacity duration-300 ${
-                  uploading || !uploadedFileId || files.some(f => uploadStatus[f.id]?.status === 'uploading' || uploadStatus[f.id]?.status === 'error')
+                  files.length === 0 || uploading || loading
                     ? 'opacity-50 cursor-not-allowed bg-gray-400' 
                     : 'bg-mint-green hover:bg-teal-600'
                 }`}
               >
-                {uploading ? `Uploading... ${uploadProgress}%` : 'Proceed to Payment'}
+                {uploading ? `Uploading... ${uploadProgress}%` : loading ? 'Processing...' : 'Proceed to Payment'}
               </button>
 
               <div className="mt-6 pt-6 border-t border-white border-opacity-20">
