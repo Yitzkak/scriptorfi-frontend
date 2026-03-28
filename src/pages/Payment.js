@@ -17,7 +17,6 @@ const Payment = () => {
   const FILE_LIST_STORAGE_KEY = "checkoutFileList";
   const UPLOAD_LIST_STORAGE_KEY = "uploadExistingFiles";
   const REMOVED_LIST_STORAGE_KEY = "removedFileIds";
-  const [claiming, setClaiming] = useState(false);
   const [paystackEmail, setPaystackEmail] = useState("");
   const [paystackLoading, setPaystackLoading] = useState(false);
   const [paypalLoading, setPaypalLoading] = useState(false);
@@ -165,24 +164,6 @@ const Payment = () => {
     
     fetchFileDetails();
   }, [location.state, navigate]);
-
-  useEffect(() => {
-    const claimFiles = async () => {
-      if (fileList.length === 0 || claiming) return;
-      setClaiming(true);
-      try {
-        await api.post("/api/files/claim/", {
-          upload_ids: fileList.map((f) => f.id),
-        });
-      } catch (error) {
-        console.error("Error claiming files:", error);
-      } finally {
-        setClaiming(false);
-      }
-    };
-
-    claimFiles();
-  }, [fileList, claiming]);
 
   const handlePaystackPayment = async () => {
     if (fileList.length === 0) {

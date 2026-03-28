@@ -359,8 +359,16 @@ const FilesUpload = () => {
         const claimResponse = await api.post("/api/files/claim/", { upload_id: uploadedFileId });
         console.log('Claim response:', claimResponse.data);
         localStorage.removeItem('pendingUploadId'); // Clear after claiming
-        console.log('Navigating to payment with fileIds:', [uploadedFileId]);
-        navigate("/dashboard/payment", { state: { fileIds: [uploadedFileId] } });
+        // Clear any stale checkout data so Payment page doesn't load old files
+        localStorage.removeItem('checkoutFileList');
+        localStorage.removeItem('uploadExistingFiles');
+        localStorage.removeItem('removedFileIds');
+        // Fetch the claimed file details so Payment can render immediately
+        const fileResponse = await api.get('/api/files/');
+        const claimedFile = fileResponse.data.find(f => f.id === uploadedFileId);
+        const fileData = claimedFile || { id: uploadedFileId, total_cost: calculateTotalCost(totalDuration, transcriptionType).toFixed(2), size: totalDuration, transcription_type: transcriptionType };
+        console.log('Navigating to payment with fileData:', fileData);
+        navigate("/dashboard/payment", { state: { fileData, fileIds: [uploadedFileId] } });
       }
     } catch (error) {
       console.error("Checkout error:", error);
