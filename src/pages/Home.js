@@ -5,12 +5,14 @@ import OurProcess from '../components/OurProcess';
 import Pricing from '../components/Pricing';
 import CallToActionBanner from '../components/CallToActionBanner';
 import EditorHighlight from '../components/EditorHighlight';
+import AutoTranscriptionSection from '../components/AutoTranscriptionSection';
 
 const Home = () => {
     return (
         <div>
             <Hero />
             <OurProcess />
+            <AutoTranscriptionSection />
             <WhyChooseUs />
             <Pricing />
             <EditorHighlight />

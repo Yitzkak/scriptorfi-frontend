@@ -13,7 +13,9 @@ import {
   FiCheck as FiCheckIcon,
   FiClock,
   FiFile,
-  FiX
+  FiX,
+  FiZap,
+  FiUser
 } from "react-icons/fi";
 import { FaCoins } from "react-icons/fa";
 import getSymbolFromCurrency from 'currency-symbol-map';
@@ -39,9 +41,11 @@ const FilesUpload = () => {
   const [uploadedFileId, setUploadedFileId] = useState(null);
   const [uploadStatus, setUploadStatus] = useState({}); // Track upload status per file
 
-  const PRICE_PER_MINUTE = 0.5;
+  const PRICE_PER_MINUTE = 0.5;         // Manual transcription: $0.50/min
+  const AUTO_PRICE_PER_MINUTE = 0.07;   // Auto transcription: $0.07/min
   const FREE_TRIAL_SECONDS = 5 * 60;
   const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB
+  const [transcriptionType, setTranscriptionType] = useState('manual'); // 'manual' | 'auto'
   // Currency preference comes from the user's profile; fall back to USD until it's available
   const [currency, setCurrency] = useState('USD');
   const [exchangeRate, setExchangeRate] = useState(1);
@@ -115,11 +119,13 @@ const FilesUpload = () => {
     }
   }, [currency]);
 
-  const calculateTotalCost = (totalSeconds) => {
+  const calculateTotalCost = (totalSeconds, type) => {
     const billableSeconds = freeTrialActive
       ? Math.max(0, totalSeconds - FREE_TRIAL_SECONDS)
       : totalSeconds;
-    const pricePerMinute = PRICE_PER_MINUTE;
+    const pricePerMinute = (type || transcriptionType) === 'auto'
+      ? AUTO_PRICE_PER_MINUTE
+      : PRICE_PER_MINUTE;
     return (billableSeconds / 60) * pricePerMinute;
   };
   
@@ -192,7 +198,8 @@ const FilesUpload = () => {
             timestamp: timestamp ? "Yes" : "No",
             spelling: accent,
             instruction: instructions,
-            total_cost: calculateTotalCost(duration).toFixed(2),
+            total_cost: calculateTotalCost(duration, transcriptionType).toFixed(2),
+            transcription_type: transcriptionType,
           }));
         }
         
@@ -281,8 +288,8 @@ const FilesUpload = () => {
   useEffect(() => {
     const total = files.reduce((acc, file) => acc + file.duration, 0);
     setTotalDuration(total);
-    setTotalCost(calculateTotalCost(total));
-  }, [freeTrialActive, files, exchangeRate]);
+    setTotalCost(calculateTotalCost(total, transcriptionType));
+  }, [freeTrialActive, files, exchangeRate, transcriptionType]);
 
   // Handle checkout - Upload anonymously and proceed
   const handleCheckout = async () => {
@@ -294,6 +301,12 @@ const FilesUpload = () => {
     try {
       if (freeTrialActive) {
         sessionStorage.removeItem('freeTrialActive');
+      }
+      // Store auto-transcription flag so PaymentSuccess can trigger it
+      if (transcriptionType === 'auto' && uploadedFileId) {
+        sessionStorage.setItem('auto_transcription_file_ids', JSON.stringify([uploadedFileId]));
+      } else {
+        sessionStorage.removeItem('auto_transcription_file_ids');
       }
       if (!user) {
         // Not authenticated - redirect to register
@@ -400,7 +413,7 @@ const FilesUpload = () => {
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium text-gray-900 truncate">{file.name}</p>
                                 <p className="text-sm text-gray-500">
-                                  {Math.ceil(file.duration / 60)} min • {getSymbolFromCurrency(currency) || currency + ' '}{(((file.duration / 60) * PRICE_PER_MINUTE) * exchangeRate).toFixed(2)} {currency}
+                                  {Math.ceil(file.duration / 60)} min • {getSymbolFromCurrency(currency) || currency + ' '}{(((file.duration / 60) * (transcriptionType === 'auto' ? AUTO_PRICE_PER_MINUTE : PRICE_PER_MINUTE)) * exchangeRate).toFixed(2)} {currency}
                                 </p>
                               </div>
                             </div>
@@ -450,6 +463,78 @@ const FilesUpload = () => {
                   <FiFile className="mx-auto text-gray-400 w-12 h-12 mb-3" />
                   <p className="text-gray-500">No files uploaded yet</p>
                   <p className="text-sm text-gray-400 mt-1">Upload files to get started</p>
+                </div>
+              )}
+            </div>
+
+            {/* Transcription Type */}
+            <div className="bg-white shadow-sm rounded-xl p-6 border border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <FiZap className="text-mint-green" />
+                Choose Transcription Method
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Manual */}
+                <button
+                  type="button"
+                  onClick={() => setTranscriptionType('manual')}
+                  className={`flex flex-col items-start gap-2 p-5 rounded-xl border-2 transition-all text-left ${
+                    transcriptionType === 'manual'
+                      ? 'border-mint-green bg-mint-green bg-opacity-5 shadow-md'
+                      : 'border-gray-200 hover:border-gray-300 bg-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <div className={`p-2 rounded-lg ${
+                      transcriptionType === 'manual' ? 'bg-mint-green text-white' : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      <FiUser className="w-5 h-5" />
+                    </div>
+                    <span className="font-semibold text-gray-900">Human Transcription</span>
+                    {transcriptionType === 'manual' && (
+                      <span className="ml-auto px-2 py-0.5 bg-mint-green text-white text-xs rounded-full">Selected</span>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-500 pl-1">Reviewed by a professional transcriptionist. Highest accuracy.</p>
+                  <p className="text-sm font-semibold text-mint-green pl-1">
+                    {getSymbolFromCurrency(currency) || currency + ' '}{(PRICE_PER_MINUTE * exchangeRate).toFixed(2)} {currency}/min
+                  </p>
+                </button>
+
+                {/* Auto */}
+                <button
+                  type="button"
+                  onClick={() => setTranscriptionType('auto')}
+                  className={`flex flex-col items-start gap-2 p-5 rounded-xl border-2 transition-all text-left ${
+                    transcriptionType === 'auto'
+                      ? 'border-blue-500 bg-blue-50 shadow-md'
+                      : 'border-gray-200 hover:border-gray-300 bg-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <div className={`p-2 rounded-lg ${
+                      transcriptionType === 'auto' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      <FiZap className="w-5 h-5" />
+                    </div>
+                    <span className="font-semibold text-gray-900">Auto Transcription</span>
+                    {transcriptionType === 'auto' && (
+                      <span className="ml-auto px-2 py-0.5 bg-blue-500 text-white text-xs rounded-full">Selected</span>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-500 pl-1">Powered by Google Chirp AI (Speech-to-Text v2). Fast turnaround, great for clear audio.</p>
+                  <p className="text-sm font-semibold text-blue-600 pl-1">
+                    {getSymbolFromCurrency(currency) || currency + ' '}{(AUTO_PRICE_PER_MINUTE * exchangeRate).toFixed(2)} {currency}/min
+                    <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">86% cheaper</span>
+                  </p>
+                </button>
+              </div>
+              {transcriptionType === 'auto' && (
+                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700 flex items-start gap-2">
+                  <FiZap className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <span>
+                    <strong>Google Chirp AI Transcription:</strong> Your audio will be automatically transcribed after payment using Google's latest Chirp model (Speech-to-Text v2). Transcripts are usually ready within minutes and will appear in your dashboard.
+                  </span>
                 </div>
               )}
             </div>
@@ -540,6 +625,13 @@ const FilesUpload = () => {
               <div className="space-y-4 mb-6">
                 <div className="flex items-center justify-between pb-3 border-b border-white border-opacity-20">
                   <div className="flex items-center gap-2">
+                    {transcriptionType === 'auto' ? <FiZap className="w-5 h-5" /> : <FiUser className="w-5 h-5" />}
+                    <span>Method</span>
+                  </div>
+                  <span className="font-semibold text-sm">{transcriptionType === 'auto' ? 'Auto (Google AI)' : 'Human'}</span>
+                </div>
+                <div className="flex items-center justify-between pb-3 border-b border-white border-opacity-20">
+                  <div className="flex items-center gap-2">
                     <FiFile className="w-5 h-5" />
                     <span>Number of Files</span>
                   </div>
@@ -608,17 +700,21 @@ const FilesUpload = () => {
               </button>
 
               <div className="mt-6 pt-6 border-t border-white border-opacity-20">
-                <p className="text-sm text-white text-opacity-80 mb-2">
-                  ✓ Professional transcription
-                </p>
-                <p className="text-sm text-white text-opacity-80 mb-2">
-                  ✓ 1-3 business days delivery
-                </p>
-                <p className="text-sm text-white text-opacity-80 mb-2">
-                  ✓ 99% accuracy guarantee
-                </p>
+                {transcriptionType === 'auto' ? (
+                  <>
+                    <p className="text-sm text-white text-opacity-80 mb-2">&#9889; Google AI auto-transcription</p>
+                    <p className="text-sm text-white text-opacity-80 mb-2">&#9889; Ready within minutes</p>
+                    <p className="text-sm text-white text-opacity-80 mb-2">&#9889; Best for clear audio recordings</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-white text-opacity-80 mb-2">&#10003; Professional transcription</p>
+                    <p className="text-sm text-white text-opacity-80 mb-2">&#10003; 1&#8211;3 business days delivery</p>
+                    <p className="text-sm text-white text-opacity-80 mb-2">&#10003; 99% accuracy guarantee</p>
+                  </>
+                )}
                 <p className="text-xs text-center mt-4 text-white text-opacity-70">
-                  Rate: {getSymbolFromCurrency(currency) || currency + ' '}{(PRICE_PER_MINUTE * exchangeRate).toFixed(2)}/{currency}/minute
+                  Rate: {getSymbolFromCurrency(currency) || currency + ' '}{((transcriptionType === 'auto' ? AUTO_PRICE_PER_MINUTE : PRICE_PER_MINUTE) * exchangeRate).toFixed(2)}/{currency}/minute
                 </p>
               </div>
             </div>

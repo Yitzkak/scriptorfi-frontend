@@ -7,6 +7,39 @@ const PaymentSuccess = () => {
   const navigate = useNavigate();
   const [status, setStatus] = useState("processing");
   const [message, setMessage] = useState("Processing your payment...");
+  const [transcribing, setTranscribing] = useState(false);
+
+  /** After any successful payment, trigger auto-transcription if applicable. */
+  const triggerAutoTranscription = async () => {
+    const raw = sessionStorage.getItem("auto_transcription_file_ids");
+    if (!raw) return;
+    const fileIds = JSON.parse(raw);
+    if (!fileIds || fileIds.length === 0) return;
+
+    setTranscribing(true);
+    setMessage("Payment successful! Starting Google AI transcription...");
+
+    try {
+      await Promise.all(
+        fileIds.map((fileId) =>
+          api.post(`/api/files/${fileId}/auto-transcribe/`)
+        )
+      );
+      setMessage(
+        "Payment successful! Auto-transcription is underway. " +
+          "You\u2019ll be notified when your transcript is ready."
+      );
+    } catch (err) {
+      console.error("Auto-transcription trigger error:", err);
+      setMessage(
+        "Payment successful! Your file is queued. " +
+          "Auto-transcription will start shortly."
+      );
+    } finally {
+      sessionStorage.removeItem("auto_transcription_file_ids");
+      setTranscribing(false);
+    }
+  };
 
   useEffect(() => {
     const executePayment = async () => {
@@ -37,6 +70,8 @@ const PaymentSuccess = () => {
           sessionStorage.removeItem("paystack_reference");
           localStorage.removeItem("checkoutFileList");
           localStorage.removeItem("uploadExistingFiles");
+
+          await triggerAutoTranscription();
 
           setTimeout(() => {
             navigate("/dashboard/my-transcriptions");
@@ -89,6 +124,8 @@ const PaymentSuccess = () => {
         localStorage.removeItem("checkoutFileList");
         localStorage.removeItem("uploadExistingFiles");
 
+        await triggerAutoTranscription();
+
         // Redirect to transcriptions after 3 seconds
         setTimeout(() => {
           navigate("/dashboard/my-transcriptions");
@@ -131,7 +168,13 @@ const PaymentSuccess = () => {
             </svg>
             <h2 className="text-2xl font-bold text-gray-800 mb-2">Payment Successful!</h2>
             <p className="text-gray-600 mb-4">{message}</p>
-            <p className="text-sm text-gray-500">Redirecting to your transcriptions...</p>
+            {transcribing && (
+              <div className="flex items-center justify-center gap-2 text-blue-600 text-sm mb-3">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                <span>Starting AI transcription…</span>
+              </div>
+            )}
+            <p className="text-sm text-gray-500">Redirecting to your transcriptions…</p>
           </>
         )}
 
