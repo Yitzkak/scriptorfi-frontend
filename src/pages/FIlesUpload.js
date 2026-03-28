@@ -44,7 +44,7 @@ const FilesUpload = () => {
   const PRICE_PER_MINUTE = 0.5;         // Manual transcription: $0.50/min
   const AUTO_PRICE_PER_MINUTE = 0.07;   // Auto transcription: $0.07/min
   const FREE_TRIAL_SECONDS = 5 * 60;
-  const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB
+  const CHUNK_SIZE = 1 * 1024 * 1024; // 1MB — kept small to avoid Railway HTTP/2 proxy limits
   const [transcriptionType, setTranscriptionType] = useState('manual'); // 'manual' | 'auto'
   // Currency preference comes from the user's profile; fall back to USD until it's available
   const [currency, setCurrency] = useState('USD');
@@ -134,13 +134,31 @@ const FilesUpload = () => {
     return usdCost * exchangeRate;
   };
 
-  // Get audio duration
+  // Get audio/video duration
   const getAudioDuration = (file) => {
     return new Promise((resolve) => {
-      const audio = new Audio(URL.createObjectURL(file));
-      audio.onloadedmetadata = () => {
-        resolve(audio.duration);
+      const url = URL.createObjectURL(file);
+      const media = file.type.startsWith('video/') ? document.createElement('video') : new Audio();
+      const cleanup = () => URL.revokeObjectURL(url);
+      media.onloadedmetadata = () => {
+        cleanup();
+        resolve(isFinite(media.duration) && media.duration > 0 ? media.duration : 0);
       };
+      media.onerror = () => {
+        cleanup();
+        resolve(0);
+      };
+      // Fallback timeout in case metadata never fires
+      const timer = setTimeout(() => {
+        cleanup();
+        resolve(0);
+      }, 10000);
+      media.onloadedmetadata = () => {
+        clearTimeout(timer);
+        cleanup();
+        resolve(isFinite(media.duration) && media.duration > 0 ? media.duration : 0);
+      };
+      media.src = url;
     });
   };
 
@@ -203,11 +221,23 @@ const FilesUpload = () => {
           }));
         }
         
-        const response = await api.post('/api/files/upload/chunked/', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        // Retry each chunk up to 3 times to handle transient network/proxy errors
+        let response = null;
+        const MAX_CHUNK_RETRIES = 3;
+        for (let attempt = 1; attempt <= MAX_CHUNK_RETRIES; attempt++) {
+          try {
+            response = await api.post('/api/files/upload/chunked/', formData, {
+              headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            break; // success
+          } catch (chunkErr) {
+            if (attempt === MAX_CHUNK_RETRIES) throw chunkErr;
+            // Wait briefly before retrying (500ms, 1s)
+            await new Promise(res => setTimeout(res, attempt * 500));
+          }
+        }
         
-        if (response.data && response.data.id) {
+        if (response && response.data && response.data.id) {
           uploadResponse = response.data;
         }
         
@@ -302,6 +332,18 @@ const FilesUpload = () => {
       if (freeTrialActive) {
         sessionStorage.removeItem('freeTrialActive');
       }
+
+      // Ensure the backend file has the current transcription type before payment.
+      // This handles the case where the user uploaded first (default 'manual') then
+      // switched to 'auto', or vice versa.
+      try {
+        await api.patch(`/api/files/${uploadedFileId}/transcription-type/`, {
+          transcription_type: transcriptionType,
+        });
+      } catch (patchErr) {
+        console.warn('Could not sync transcription type:', patchErr);
+      }
+
       // Store auto-transcription flag so PaymentSuccess can trigger it
       if (transcriptionType === 'auto' && uploadedFileId) {
         sessionStorage.setItem('auto_transcription_file_ids', JSON.stringify([uploadedFileId]));
@@ -353,7 +395,7 @@ const FilesUpload = () => {
                 <label className="flex items-center gap-3 bg-gradient-to-r from-mint-green to-teal-500 p-4 rounded-lg cursor-pointer hover:shadow-lg transition-shadow group">
                   <FaCloudUploadAlt className="text-2xl text-white group-hover:scale-110 transition-transform" />
                   <span className="text-white font-medium">Upload from Computer</span>
-                  <input type="file" multiple accept="audio/*" onChange={handleFileUpload} className="hidden" />
+                  <input type="file" multiple accept="audio/*,video/*" onChange={handleFileUpload} className="hidden" />
                 </label>
                 
                 <button 
