@@ -296,6 +296,12 @@ const FilesUpload = () => {
     try {
       if (freeTrialActive) sessionStorage.removeItem('freeTrialActive');
 
+      // Always sync the transcription type the user has chosen right now —
+      // the upload may have started before they switched between auto/manual.
+      await api.patch(`/api/files/${uploadedFileId}/transcription-type/`, {
+        transcription_type: transcriptionType,
+      });
+
       if (transcriptionType === 'auto') {
         sessionStorage.setItem('auto_transcription_file_ids', JSON.stringify([uploadedFileId]));
       } else {
