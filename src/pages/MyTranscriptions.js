@@ -39,6 +39,17 @@ const MyTranscriptions = () => {
 
   const handleClose = () => setActiveTranscript(null);
 
+  const downloadAsText = (file) => {
+    const text = file.transcript?.text || "";
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${file.name.replace(/\.[^.]+$/, "")}_transcript.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const openInEditor = async (file) => {
     try {
       let transcriptText = file?.transcript?.text;
@@ -112,7 +123,7 @@ const MyTranscriptions = () => {
                 </div>
 
                 <div className="mt-4 flex items-center gap-3">
-                  {file.transcript?.file && (
+                  {file.transcript?.file ? (
                     <a
                       href={file.transcript.file}
                       className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
@@ -122,7 +133,14 @@ const MyTranscriptions = () => {
                     >
                       <FiDownload /> Download Transcript
                     </a>
-                  )}
+                  ) : file.transcript?.text ? (
+                    <button
+                      onClick={() => downloadAsText(file)}
+                      className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
+                    >
+                      <FiDownload /> Download as .txt
+                    </button>
+                  ) : null}
                 </div>
               </div>
             ))}
