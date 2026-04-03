@@ -495,7 +495,6 @@ const FileList = () => {
             </div>
           )}
         </div>
-      </div>
 
       {activeTranscript && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center p-4 z-50">
@@ -541,7 +540,7 @@ const FileList = () => {
           </div>
         </div>
       )}
-    </div>
+      </div>
   );
 };
 
