@@ -542,8 +542,7 @@ const FileList = () => {
         </div>
       )}
     </div>
-    );
-  };
-  
-  export default FileList;
-  
+  );
+};
+
+export default FileList;
