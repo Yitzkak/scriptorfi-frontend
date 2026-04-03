@@ -70,7 +70,9 @@ const Queue = () => {
 
     try {
       setUpdating(true);
-      await api.post(`/api/superadmin/files/${selectedFile.id}/transcript/`, formData);
+      await api.post(`/api/superadmin/files/${selectedFile.id}/transcript/`, formData, {
+        headers: { "Content-Type": undefined },
+      });
       await fetchFiles();
       setSelectedFile(null);
       setTranscriptText("");
