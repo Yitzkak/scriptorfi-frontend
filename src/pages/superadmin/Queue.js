@@ -76,7 +76,8 @@ const Queue = () => {
       setTranscriptText("");
       setTranscriptFile(null);
     } catch (err) {
-      setError("Failed to upload transcript.");
+      const detail = err.response?.data?.error || err.message || "Unknown error";
+      setError(`Failed to upload transcript: ${detail}`);
     } finally {
       setUpdating(false);
     }
