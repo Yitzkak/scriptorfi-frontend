@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import api from "../../api/api";
 import AdminTopbar from "../../components/superadmin/AdminTopbar";
-import { FiFileText, FiUploadCloud, FiX } from "react-icons/fi";
+import { FiFileText, FiUploadCloud, FiX, FiEye } from "react-icons/fi";
 
 const statusOptions = ["Pending", "In Review", "Completed"];
 
@@ -15,6 +15,7 @@ const Queue = () => {
   const [transcriptText, setTranscriptText] = useState("");
   const [transcriptFile, setTranscriptFile] = useState(null);
   const [updating, setUpdating] = useState(false);
+  const [viewingTranscript, setViewingTranscript] = useState(null);
 
   const fetchFiles = async () => {
     try {
@@ -77,6 +78,7 @@ const Queue = () => {
       setSelectedFile(null);
       setTranscriptText("");
       setTranscriptFile(null);
+      setError("");
     } catch (err) {
       const detail = err.response?.data?.error || err.message || "Unknown error";
       setError(`Failed to upload transcript: ${detail}`);
@@ -139,19 +141,20 @@ const Queue = () => {
                   <th className="px-4 py-3 text-left">Duration (s)</th>
                   <th className="px-4 py-3 text-left">Total</th>
                   <th className="px-4 py-3 text-left">Status</th>
+                  <th className="px-4 py-3 text-left">Transcript</th>
                   <th className="px-4 py-3 text-left">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {loading ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-6 text-center text-gray-500">
+                    <td colSpan={7} className="px-4 py-6 text-center text-gray-500">
                       Loading...
                     </td>
                   </tr>
                 ) : filteredFiles.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-6 text-center text-gray-500">
+                    <td colSpan={7} className="px-4 py-6 text-center text-gray-500">
                       No files found.
                     </td>
                   </tr>
@@ -173,6 +176,18 @@ const Queue = () => {
                         </span>
                       </td>
                       <td className="px-4 py-4">
+                        {file.transcript ? (
+                          <button
+                            onClick={() => setViewingTranscript(file)}
+                            className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-teal-50 text-teal-700 rounded-lg hover:bg-teal-100"
+                          >
+                            <FiEye size={12} /> View
+                          </button>
+                        ) : (
+                          <span className="text-xs text-gray-400">None</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-4">
                         <div className="flex flex-wrap gap-2">
                           <button
                             disabled={updating}
@@ -189,10 +204,14 @@ const Queue = () => {
                             Complete
                           </button>
                           <button
-                            onClick={() => setSelectedFile(file)}
+                            onClick={() => {
+                              setTranscriptText(file.transcript?.text || "");
+                              setTranscriptFile(null);
+                              setSelectedFile(file);
+                            }}
                             className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
                           >
-                            Upload transcript
+                            {file.transcript ? "Edit transcript" : "Upload transcript"}
                           </button>
                         </div>
                       </td>
@@ -250,6 +269,37 @@ const Queue = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {viewingTranscript && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] flex flex-col relative">
+            <div className="flex items-center justify-between p-5 border-b">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Transcript — {viewingTranscript.name}</h2>
+                <p className="text-xs text-gray-500 mt-0.5">{viewingTranscript.user?.email || "Anonymous"}</p>
+              </div>
+              <button onClick={() => setViewingTranscript(null)} className="text-gray-500 hover:text-gray-700">
+                <FiX size={20} />
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1 p-5">
+              {viewingTranscript.transcript?.text ? (
+                <pre className="whitespace-pre-wrap text-sm text-gray-800">{viewingTranscript.transcript.text}</pre>
+              ) : viewingTranscript.transcript?.file ? (
+                <a
+                  href={viewingTranscript.transcript.file}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-teal-600 underline text-sm"
+                >
+                  Download uploaded file
+                </a>
+              ) : (
+                <p className="text-gray-500 text-sm">No transcript content saved.</p>
+              )}
+            </div>
           </div>
         </div>
       )}
