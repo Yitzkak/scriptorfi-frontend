@@ -30,6 +30,8 @@ const FileList = () => {
     const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
     const [currency, setCurrency] = useState('USD');
     const [exchangeRate, setExchangeRate] = useState(1);
+    const [activeTranscript, setActiveTranscript] = useState(null);
+    const [activeTranscriptFile, setActiveTranscriptFile] = useState(null);
 
     // Load user profile to get currency preference
     useEffect(() => {
@@ -98,6 +100,29 @@ const FileList = () => {
       fetchFiles();
     }, []);
   
+    // View transcript
+    const handleView = async (file) => {
+        try {
+            const response = await api.get(`/api/transcriptions/${file.id}/`);
+            setActiveTranscript(response.data);
+            setActiveTranscriptFile(file);
+        } catch (error) {
+            setMessage("Transcript not available yet.");
+            setMessageType("error");
+        }
+    };
+
+    const downloadAsText = () => {
+        const text = activeTranscript?.text || "";
+        const blob = new Blob([text], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${activeTranscriptFile?.name?.replace(/\.[^.]+$/, "") || "transcript"}_transcript.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
     // Delete file
     const handleDelete = async (id) => {
         const confirmed = window.confirm("Are you sure you want to delete this file?");
@@ -363,7 +388,7 @@ const FileList = () => {
                     {/* Actions */}
                     <div className="flex gap-2 pt-4 border-t border-gray-100">
                       <button
-                        onClick={() => alert(`Viewing details for ${file.name}`)}
+                        onClick={() => handleView(file)}
                         disabled={file.status !== "Completed"}
                         className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                           file.status === "Completed" 
@@ -442,7 +467,7 @@ const FileList = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex items-center justify-end gap-2">
                             <button
-                              onClick={() => alert(`Viewing details for ${file.name}`)}
+                              onClick={() => handleView(file)}
                               disabled={file.status !== "Completed"}
                               className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg transition-colors ${
                                 file.status === "Completed" 
@@ -471,6 +496,52 @@ const FileList = () => {
           )}
         </div>
       </div>
+
+      {activeTranscript && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Transcript — {activeTranscriptFile?.name}
+              </h2>
+              <button
+                onClick={() => { setActiveTranscript(null); setActiveTranscriptFile(null); }}
+                className="text-gray-500 hover:text-gray-800"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto flex-1">
+              {activeTranscript.text ? (
+                <pre className="whitespace-pre-wrap text-sm text-gray-800">{activeTranscript.text}</pre>
+              ) : (
+                <p className="text-gray-600">No transcript text available.</p>
+              )}
+            </div>
+            <div className="p-4 border-t flex gap-3">
+              {activeTranscript.file ? (
+                <a
+                  href={activeTranscript.file}
+                  download
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition text-sm"
+                >
+                  <FiDownload /> Download File
+                </a>
+              ) : activeTranscript.text ? (
+                <button
+                  onClick={downloadAsText}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition text-sm"
+                >
+                  <FiDownload /> Download as .txt
+                </button>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
     );
   };
   
