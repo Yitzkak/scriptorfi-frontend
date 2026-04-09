@@ -296,8 +296,16 @@ const FilesUpload = () => {
     try {
       if (freeTrialActive) sessionStorage.removeItem('freeTrialActive');
 
-      // Always sync the transcription type the user has chosen right now —
-      // the upload may have started before they switched between auto/manual.
+      if (!user) {
+        navigate('/register', { state: { from: '/upload', message: 'Create an account to complete your upload' } });
+        return;
+      }
+
+      // Claim the file first (assigns it to the logged-in user)
+      await api.post("/api/files/claim/", { upload_id: uploadedFileId });
+
+      // Now sync the transcription type AFTER claiming
+      // (the endpoint requires the file to be owned by the user)
       await api.patch(`/api/files/${uploadedFileId}/transcription-type/`, {
         transcription_type: transcriptionType,
       });
@@ -308,12 +316,6 @@ const FilesUpload = () => {
         sessionStorage.removeItem('auto_transcription_file_ids');
       }
 
-      if (!user) {
-        navigate('/register', { state: { from: '/upload', message: 'Create an account to complete your upload' } });
-        return;
-      }
-
-      await api.post("/api/files/claim/", { upload_id: uploadedFileId });
       localStorage.removeItem('pendingUploadId');
       localStorage.removeItem('checkoutFileList');
       localStorage.removeItem('uploadExistingFiles');
