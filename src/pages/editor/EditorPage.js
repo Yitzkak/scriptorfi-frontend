@@ -72,8 +72,11 @@ function EditorPage() {
   // Load transcript from location state or localStorage
   useEffect(() => {
     try {
+      console.log("[EditorPage] useEffect running, location.state:", location.state);
+      
       // Check location state first (passed from dashboard)
       if (location.state?.text) {
+        console.log("[EditorPage] Using location.state, text length:", location.state.text.length);
         setTranscript(location.state.text);
         if (location.state.fileName) {
           document.title = `Editor · ${location.state.fileName}`;
@@ -83,8 +86,13 @@ function EditorPage() {
       
       // Fallback to localStorage
       const payloadRaw = localStorage.getItem('scriptorfi_editor_payload');
-      if (!payloadRaw) return;
+      console.log("[EditorPage] localStorage payload:", payloadRaw?.substring(0, 200));
+      if (!payloadRaw) {
+        console.log("[EditorPage] No payload in localStorage");
+        return;
+      }
       const payload = JSON.parse(payloadRaw);
+      console.log("[EditorPage] Parsed payload, text length:", payload?.text?.length || 0);
       if (payload?.text) {
         setTranscript(payload.text);
       }
@@ -93,7 +101,7 @@ function EditorPage() {
       }
       localStorage.removeItem('scriptorfi_editor_payload');
     } catch (e) {
-      // Ignore parse errors
+      console.error("[EditorPage] Error loading transcript:", e);
     }
   }, [location.state]);
 
