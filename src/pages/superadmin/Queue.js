@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import api from "../../api/api";
 import AdminTopbar from "../../components/superadmin/AdminTopbar";
-import { FiFileText, FiUploadCloud, FiX, FiEye } from "react-icons/fi";
+import { FiFileText, FiUploadCloud, FiX, FiEye, FiPlay, FiPause } from "react-icons/fi";
 
 const statusOptions = ["Pending", "In Review", "Completed"];
 
@@ -16,6 +16,51 @@ const Queue = () => {
   const [transcriptFile, setTranscriptFile] = useState(null);
   const [updating, setUpdating] = useState(false);
   const [viewingTranscript, setViewingTranscript] = useState(null);
+  const [playingFileId, setPlayingFileId] = useState(null);
+  const audioRef = useRef(null);
+
+  // Audio player handlers
+  const handlePlayPause = (file) => {
+    if (!file.file) {
+      setError("Audio file not available.");
+      return;
+    }
+    
+    if (playingFileId === file.id) {
+      // Pause current audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      setPlayingFileId(null);
+    } else {
+      // Stop any currently playing audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      // Create new audio and play
+      audioRef.current = new Audio(file.file);
+      audioRef.current.onended = () => setPlayingFileId(null);
+      audioRef.current.onerror = () => {
+        setError("Failed to play audio file.");
+        setPlayingFileId(null);
+      };
+      audioRef.current.play().catch(err => {
+        setError("Failed to play audio file.");
+        setPlayingFileId(null);
+      });
+      setPlayingFileId(file.id);
+    }
+  };
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
 
   const fetchFiles = async () => {
     try {
@@ -137,6 +182,7 @@ const Queue = () => {
               <thead className="bg-gray-50 text-gray-600">
                 <tr>
                   <th className="px-4 py-3 text-left">File</th>
+                  <th className="px-4 py-3 text-left">Audio</th>
                   <th className="px-4 py-3 text-left">User</th>
                   <th className="px-4 py-3 text-left">Duration (s)</th>
                   <th className="px-4 py-3 text-left">Total</th>
@@ -148,13 +194,13 @@ const Queue = () => {
               <tbody className="divide-y divide-gray-200">
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-6 text-center text-gray-500">
+                    <td colSpan={8} className="px-4 py-6 text-center text-gray-500">
                       Loading...
                     </td>
                   </tr>
                 ) : filteredFiles.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-6 text-center text-gray-500">
+                    <td colSpan={8} className="px-4 py-6 text-center text-gray-500">
                       No files found.
                     </td>
                   </tr>
@@ -164,6 +210,23 @@ const Queue = () => {
                       <td className="px-4 py-4">
                         <div className="font-medium text-gray-900">{file.name}</div>
                         <div className="text-xs text-gray-500">{file.date_uploaded}</div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <button
+                          onClick={() => handlePlayPause(file)}
+                          disabled={!file.file}
+                          className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-lg transition-colors ${
+                            file.file 
+                              ? playingFileId === file.id
+                                ? "bg-orange-500 text-white hover:bg-orange-600"
+                                : "bg-blue-500 text-white hover:bg-blue-600"
+                              : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          }`}
+                          title={file.file ? (playingFileId === file.id ? "Pause" : "Play Audio") : "Audio not available"}
+                        >
+                          {playingFileId === file.id ? <FiPause size={12} /> : <FiPlay size={12} />}
+                          {playingFileId === file.id ? "Pause" : "Play"}
+                        </button>
                       </td>
                       <td className="px-4 py-4 text-gray-700">
                         {file.user?.email || file.user?.username || "Anonymous"}

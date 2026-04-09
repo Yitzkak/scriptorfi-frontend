@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import api from "../api/api";
 import Alert from "../components/ui/Alert";
@@ -12,7 +12,9 @@ import {
   FiAlertCircle,
   FiFilter,
   FiSearch,
-  FiCalendar
+  FiCalendar,
+  FiPlay,
+  FiPause
 } from "react-icons/fi";
 import { FaCoins } from "react-icons/fa";
 import { HiOutlineDocumentText } from "react-icons/hi";
@@ -32,6 +34,54 @@ const FileList = () => {
     const [exchangeRate, setExchangeRate] = useState(1);
     const [activeTranscript, setActiveTranscript] = useState(null);
     const [activeTranscriptFile, setActiveTranscriptFile] = useState(null);
+    const [playingFileId, setPlayingFileId] = useState(null);
+    const audioRef = useRef(null);
+
+    // Audio player handlers
+    const handlePlayPause = (file) => {
+        if (!file.file) {
+            setMessage("Audio file not available.");
+            setMessageType("error");
+            return;
+        }
+        
+        if (playingFileId === file.id) {
+            // Pause current audio
+            if (audioRef.current) {
+                audioRef.current.pause();
+            }
+            setPlayingFileId(null);
+        } else {
+            // Stop any currently playing audio
+            if (audioRef.current) {
+                audioRef.current.pause();
+            }
+            // Create new audio and play
+            audioRef.current = new Audio(file.file);
+            audioRef.current.onended = () => setPlayingFileId(null);
+            audioRef.current.onerror = () => {
+                setMessage("Failed to play audio file.");
+                setMessageType("error");
+                setPlayingFileId(null);
+            };
+            audioRef.current.play().catch(err => {
+                setMessage("Failed to play audio file.");
+                setMessageType("error");
+                setPlayingFileId(null);
+            });
+            setPlayingFileId(file.id);
+        }
+    };
+
+    // Cleanup audio on unmount
+    useEffect(() => {
+        return () => {
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current = null;
+            }
+        };
+    }, []);
 
     // Load user profile to get currency preference
     useEffect(() => {
@@ -388,6 +438,20 @@ const FileList = () => {
                     {/* Actions */}
                     <div className="flex gap-2 pt-4 border-t border-gray-100">
                       <button
+                        onClick={() => handlePlayPause(file)}
+                        disabled={!file.file}
+                        className={`px-3 py-2 rounded-lg transition-colors ${
+                          file.file 
+                            ? playingFileId === file.id
+                              ? "bg-orange-500 text-white hover:bg-orange-600"
+                              : "bg-blue-500 text-white hover:bg-blue-600"
+                            : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        }`}
+                        title={file.file ? (playingFileId === file.id ? "Pause" : "Play Audio") : "Audio not available"}
+                      >
+                        {playingFileId === file.id ? <FiPause className="w-4 h-4" /> : <FiPlay className="w-4 h-4" />}
+                      </button>
+                      <button
                         onClick={() => handleView(file)}
                         disabled={file.status !== "Completed"}
                         className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-colors ${
@@ -466,6 +530,21 @@ const FileList = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => handlePlayPause(file)}
+                              disabled={!file.file}
+                              className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg transition-colors ${
+                                file.file 
+                                  ? playingFileId === file.id
+                                    ? "bg-orange-500 text-white hover:bg-orange-600"
+                                    : "bg-blue-500 text-white hover:bg-blue-600"
+                                  : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                              }`}
+                              title={file.file ? (playingFileId === file.id ? "Pause" : "Play") : "Audio not available"}
+                            >
+                              {playingFileId === file.id ? <FiPause className="w-4 h-4" /> : <FiPlay className="w-4 h-4" />}
+                              {playingFileId === file.id ? "Pause" : "Play"}
+                            </button>
                             <button
                               onClick={() => handleView(file)}
                               disabled={file.status !== "Completed"}
