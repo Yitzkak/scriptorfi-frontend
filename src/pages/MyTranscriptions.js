@@ -4,7 +4,6 @@ import Alert from "../components/ui/Alert";
 import { FiFileText, FiDownload, FiEye, FiExternalLink, FiClock, FiLoader, FiRefreshCw } from "react-icons/fi";
 
 const MyTranscriptions = () => {
-  const editorUrl = process.env.REACT_APP_EDITOR_URL || "http://localhost:3001";
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState(null);
@@ -92,7 +91,7 @@ const MyTranscriptions = () => {
         })
       );
 
-      window.open(`${editorUrl}#/editor`, "_blank", "noopener,noreferrer");
+      window.open("/editor", "_blank", "noopener,noreferrer");
     } catch (error) {
       setMessage("Failed to open transcript in editor");
       setMessageType("error");
