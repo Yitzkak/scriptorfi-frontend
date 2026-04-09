@@ -8,7 +8,8 @@ import {
   FiBell, 
   FiSettings,
   FiMenu,
-  FiX
+  FiX,
+  FiHeadphones
 } from 'react-icons/fi';
 
 const Sidebar = () => {
@@ -32,6 +33,11 @@ const Sidebar = () => {
         path: '/dashboard/files',
         label: 'My Files',
         icon: FiFileText
+      },
+      {
+        path: '/dashboard/my-transcriptions',
+        label: 'My Transcriptions',
+        icon: FiHeadphones
       },
       {
         path: '/dashboard/notifications',
