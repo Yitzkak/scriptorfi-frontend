@@ -165,6 +165,18 @@ const Payment = () => {
     fetchFileDetails();
   }, [location.state, navigate]);
 
+  // Helper to set auto_transcription_file_ids for files that need AI transcription
+  const setAutoTranscriptionIds = () => {
+    const autoFileIds = fileList
+      .filter(f => f.transcription_type === 'auto')
+      .map(f => f.id);
+    if (autoFileIds.length > 0) {
+      sessionStorage.setItem('auto_transcription_file_ids', JSON.stringify(autoFileIds));
+    } else {
+      sessionStorage.removeItem('auto_transcription_file_ids');
+    }
+  };
+
   const handlePaystackPayment = async () => {
     if (fileList.length === 0) {
       alert("Please upload your file first.");
@@ -203,6 +215,8 @@ const Payment = () => {
         if (response.data.reference) {
           sessionStorage.setItem("paystack_reference", response.data.reference);
         }
+        // Set auto-transcription file IDs before redirecting
+        setAutoTranscriptionIds();
         window.location.href = response.data.authorization_url;
       }
     } catch (error) {
@@ -246,6 +260,8 @@ const Payment = () => {
           sessionStorage.setItem("paypal_file_id", fileList[0].id);
         }
         sessionStorage.setItem("paypal_payment_id", response.data.payment_id);
+        // Set auto-transcription file IDs before redirecting
+        setAutoTranscriptionIds();
         window.location.href = response.data.approval_url;
       }
     } catch (error) {
