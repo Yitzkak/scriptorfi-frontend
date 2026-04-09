@@ -173,10 +173,13 @@ const FileList = () => {
         URL.revokeObjectURL(url);
     };
 
-    const downloadFile = async (url, fileName) => {
+    const downloadTranscript = async (fileId, fileName) => {
         try {
-            const response = await fetch(url);
-            const blob = await response.blob();
+            // Use backend proxy endpoint to avoid CORS issues with GCS
+            const response = await api.get(`/api/transcriptions/${fileId}/download/`, {
+                responseType: 'blob'
+            });
+            const blob = new Blob([response.data]);
             const blobUrl = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = blobUrl;
@@ -185,8 +188,8 @@ const FileList = () => {
             URL.revokeObjectURL(blobUrl);
         } catch (error) {
             console.error("Download failed:", error);
-            // Fallback: open in new tab
-            window.open(url, "_blank");
+            setMessage("Failed to download transcript");
+            setMessageType("error");
         }
     };
 
@@ -616,7 +619,7 @@ const FileList = () => {
             <div className="p-4 border-t flex gap-3">
               {activeTranscript.file ? (
                 <button
-                  onClick={() => downloadFile(activeTranscript.file, `${activeTranscriptFile?.name?.replace(/\.[^.]+$/, "") || "transcript"}_transcript`)}
+                  onClick={() => downloadTranscript(activeTranscriptFile?.id, `${activeTranscriptFile?.name?.replace(/\.[^.]+$/, "") || "transcript"}_transcript`)}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition text-sm"
                 >
                   <FiDownload /> Download File

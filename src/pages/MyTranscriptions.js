@@ -62,10 +62,13 @@ const MyTranscriptions = () => {
 
   const handleClose = () => setActiveTranscript(null);
 
-  const downloadFile = async (url, fileName) => {
+  const downloadTranscript = async (fileId, fileName) => {
     try {
-      const response = await fetch(url);
-      const blob = await response.blob();
+      // Use backend proxy endpoint to avoid CORS issues with GCS
+      const response = await api.get(`/api/transcriptions/${fileId}/download/`, {
+        responseType: 'blob'
+      });
+      const blob = new Blob([response.data]);
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = blobUrl;
@@ -74,8 +77,8 @@ const MyTranscriptions = () => {
       URL.revokeObjectURL(blobUrl);
     } catch (error) {
       console.error("Download failed:", error);
-      // Fallback: open in new tab
-      window.open(url, "_blank");
+      setMessage("Failed to download transcript");
+      setMessageType("error");
     }
   };
 
@@ -241,7 +244,7 @@ const MyTranscriptions = () => {
                     <div className="flex items-center gap-3">
                       {file.transcript?.file ? (
                         <button
-                          onClick={() => downloadFile(file.transcript.file, `${file.name.replace(/\.[^.]+$/, "")}_transcript`)}
+                          onClick={() => downloadTranscript(file.id, `${file.name.replace(/\.[^.]+$/, "")}_transcript`)}
                           className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
                         >
                           <FiDownload /> Download Transcript
