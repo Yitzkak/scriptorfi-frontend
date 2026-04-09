@@ -62,6 +62,23 @@ const MyTranscriptions = () => {
 
   const handleClose = () => setActiveTranscript(null);
 
+  const downloadFile = async (url, fileName) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = fileName;
+      a.click();
+      URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error("Download failed:", error);
+      // Fallback: open in new tab
+      window.open(url, "_blank");
+    }
+  };
+
   const downloadAsText = (file) => {
     const text = file.transcript?.text || "";
     const blob = new Blob([text], { type: "text/plain" });
@@ -223,15 +240,12 @@ const MyTranscriptions = () => {
                   {isCompleted && (
                     <div className="flex items-center gap-3">
                       {file.transcript?.file ? (
-                        <a
-                          href={file.transcript.file}
+                        <button
+                          onClick={() => downloadFile(file.transcript.file, `${file.name.replace(/\.[^.]+$/, "")}_transcript`)}
                           className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
-                          download
-                          target="_blank"
-                          rel="noreferrer"
                         >
                           <FiDownload /> Download Transcript
-                        </a>
+                        </button>
                       ) : file.transcript?.text ? (
                         <button
                           onClick={() => downloadAsText(file)}

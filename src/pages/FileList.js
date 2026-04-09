@@ -173,6 +173,23 @@ const FileList = () => {
         URL.revokeObjectURL(url);
     };
 
+    const downloadFile = async (url, fileName) => {
+        try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = blobUrl;
+            a.download = fileName;
+            a.click();
+            URL.revokeObjectURL(blobUrl);
+        } catch (error) {
+            console.error("Download failed:", error);
+            // Fallback: open in new tab
+            window.open(url, "_blank");
+        }
+    };
+
     // Delete file
     const handleDelete = async (id) => {
         const confirmed = window.confirm("Are you sure you want to delete this file?");
@@ -598,15 +615,12 @@ const FileList = () => {
             </div>
             <div className="p-4 border-t flex gap-3">
               {activeTranscript.file ? (
-                <a
-                  href={activeTranscript.file}
-                  download
-                  target="_blank"
-                  rel="noreferrer"
+                <button
+                  onClick={() => downloadFile(activeTranscript.file, `${activeTranscriptFile?.name?.replace(/\.[^.]+$/, "") || "transcript"}_transcript`)}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition text-sm"
                 >
                   <FiDownload /> Download File
-                </a>
+                </button>
               ) : activeTranscript.text ? (
                 <button
                   onClick={downloadAsText}
