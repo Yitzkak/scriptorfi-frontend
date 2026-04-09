@@ -93,6 +93,7 @@ const Textarea = forwardRef(({ fontSize, transcript, onTranscriptChange, onReque
   const startWidthInvalidRef = useRef(320);
   const validateTimerRef = useRef(null);
   const [validateTimestampsEnabled, setValidateTimestampsEnabled] = useState(false);
+  const [quillReady, setQuillReady] = useState(false); // Track when Quill is initialized
 
   // Context menu state
   const [contextMenu, setContextMenu] = useState({
@@ -1129,10 +1130,10 @@ const Textarea = forwardRef(({ fontSize, transcript, onTranscriptChange, onReque
 
   // Load transcript prop into Quill when it changes (e.g., from external source)
   useEffect(() => {
-    if (transcript && quillInstanceRef.current) {
+    if (transcript && quillReady && quillInstanceRef.current) {
       const currentText = quillInstanceRef.current.getText().trim();
-      // Only update if different to avoid overwriting user edits
-      if (!currentText || currentText !== transcript.trim()) {
+      // Always update if transcript prop is provided and different from current content
+      if (currentText !== transcript.trim()) {
         console.log("[Textarea] Loading transcript prop into editor, length:", transcript.length);
         quillInstanceRef.current.setText(transcript, 'silent');
         // Also save to localStorage for persistence
@@ -1143,7 +1144,7 @@ const Textarea = forwardRef(({ fontSize, transcript, onTranscriptChange, onReque
         }
       }
     }
-  }, [transcript]);
+  }, [transcript, quillReady]);
 
   // Add scroll listener for viewport validation
   useEffect(() => {
@@ -1614,6 +1615,7 @@ const Textarea = forwardRef(({ fontSize, transcript, onTranscriptChange, onReque
       // ignore if keyboard module isn't available
     }
     quill.focus(); // Ensure the editor is focused for typing
+    setQuillReady(true); // Signal that Quill is ready to receive transcript prop
     let lastHighlightedRange = null; // Store last highlighted range
 
     // Remove highlight when clicking inside the editor
@@ -1928,11 +1930,14 @@ const Textarea = forwardRef(({ fontSize, transcript, onTranscriptChange, onReque
       };
     }
 
-    // Load the saved transcript from localStorage if available
-    const savedTranscript = localStorage.getItem('transcript');
-    if (savedTranscript) {
-      quill.root.innerHTML = savedTranscript; // Load the saved transcript into Quill
-      // Validation removed - user must click button to validate
+    // Load the saved transcript from localStorage if available (only if no transcript prop or incoming payload)
+    const hasIncomingPayload = localStorage.getItem('scriptorfi_editor_payload');
+    if (!transcript && !hasIncomingPayload) {
+      const savedTranscript = localStorage.getItem('transcript');
+      if (savedTranscript) {
+        quill.root.innerHTML = savedTranscript; // Load the saved transcript into Quill
+        // Validation removed - user must click button to validate
+      }
     }
 
     // Handle non-breaking spaces and replace with regular spaces
