@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/api";
 import Alert from "../components/ui/Alert";
-import { FiFileText, FiDownload, FiEye, FiExternalLink, FiClock, FiLoader } from "react-icons/fi";
+import { FiFileText, FiDownload, FiEye, FiExternalLink, FiClock, FiLoader, FiRefreshCw } from "react-icons/fi";
 
 const MyTranscriptions = () => {
   const editorUrl = process.env.REACT_APP_EDITOR_URL || "http://localhost:3001";
@@ -10,6 +10,7 @@ const MyTranscriptions = () => {
   const [message, setMessage] = useState(null);
   const [messageType, setMessageType] = useState(null);
   const [activeTranscript, setActiveTranscript] = useState(null);
+  const [retrying, setRetrying] = useState(null);
 
   const fetchTranscriptions = async () => {
     try {
@@ -33,6 +34,22 @@ const MyTranscriptions = () => {
     
     return () => clearInterval(interval);
   }, []);
+
+  // Retry auto-transcription for a file
+  const handleRetryTranscription = async (fileId) => {
+    setRetrying(fileId);
+    try {
+      await api.post(`/api/files/${fileId}/auto-transcribe/`);
+      setMessage("Auto-transcription started! It may take a few minutes...");
+      setMessageType("success");
+      fetchTranscriptions();
+    } catch (error) {
+      setMessage(error.response?.data?.error || "Failed to start transcription");
+      setMessageType("error");
+    } finally {
+      setRetrying(null);
+    }
+  };
 
   const handleView = async (fileId) => {
     try {
@@ -172,7 +189,26 @@ const MyTranscriptions = () => {
                       Your transcript is being generated. This may take a few minutes...
                     </p>
                   )}
-                  {isPending && (
+                  {isPending && file.transcription_type === 'auto' && file.payment_status === 'Paid' && (
+                    <div className="flex items-center gap-3">
+                      <p className="text-sm text-yellow-600 flex items-center gap-2">
+                        <FiClock />
+                        Auto-transcription not started yet.
+                      </p>
+                      <button
+                        onClick={() => handleRetryTranscription(file.id)}
+                        disabled={retrying === file.id}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition disabled:opacity-50"
+                      >
+                        {retrying === file.id ? (
+                          <><FiLoader className="animate-spin" /> Starting...</>
+                        ) : (
+                          <><FiRefreshCw /> Start Transcription</>
+                        )}
+                      </button>
+                    </div>
+                  )}
+                  {isPending && !(file.transcription_type === 'auto' && file.payment_status === 'Paid') && (
                     <p className="text-sm text-yellow-600 flex items-center gap-2">
                       <FiClock />
                       Waiting for transcription to start...
