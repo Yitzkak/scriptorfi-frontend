@@ -91,7 +91,8 @@ const MyTranscriptions = () => {
         })
       );
 
-      window.open("/editor", "_blank", "noopener,noreferrer");
+      // Don't use noopener - it can prevent localStorage access in the new window
+      window.open("/editor", "_blank");
     } catch (error) {
       setMessage("Failed to open transcript in editor");
       setMessageType("error");
