@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/api";
 import Alert from "../components/ui/Alert";
-import { FiFileText, FiDownload, FiEye, FiExternalLink } from "react-icons/fi";
+import { FiFileText, FiDownload, FiEye, FiExternalLink, FiClock, FiLoader } from "react-icons/fi";
 
 const MyTranscriptions = () => {
   const editorUrl = process.env.REACT_APP_EDITOR_URL || "http://localhost:3001";
@@ -11,20 +11,27 @@ const MyTranscriptions = () => {
   const [messageType, setMessageType] = useState(null);
   const [activeTranscript, setActiveTranscript] = useState(null);
 
-  useEffect(() => {
-    const fetchTranscriptions = async () => {
-      try {
-        const response = await api.get("/api/transcriptions/");
-        setFiles(response.data || []);
-      } catch (error) {
-        setMessage("Failed to load transcriptions");
-        setMessageType("error");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchTranscriptions = async () => {
+    try {
+      const response = await api.get("/api/transcriptions/");
+      setFiles(response.data || []);
+    } catch (error) {
+      setMessage("Failed to load transcriptions");
+      setMessageType("error");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchTranscriptions();
+    
+    // Poll for updates every 10 seconds if there are processing files
+    const interval = setInterval(() => {
+      fetchTranscriptions();
+    }, 10000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const handleView = async (fileId) => {
@@ -93,57 +100,112 @@ const MyTranscriptions = () => {
         ) : files.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
             <FiFileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-            <p className="text-gray-600">No completed transcriptions yet.</p>
+            <p className="text-gray-600">No transcriptions yet.</p>
+            <p className="text-sm text-gray-500 mt-1">Upload a file and pay to start transcription.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {files.map((file) => (
+            {files.map((file) => {
+              const isCompleted = file.status === "Completed";
+              const isProcessing = file.status === "Processing";
+              const isPending = file.status === "Pending";
+              
+              return (
               <div key={file.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
                 <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-semibold text-gray-900 truncate" title={file.name}>{file.name}</h3>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-semibold text-gray-900 truncate" title={file.name}>{file.name}</h3>
+                      {/* Status Badge */}
+                      {isProcessing && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                          <FiLoader className="animate-spin w-3 h-3" /> Processing
+                        </span>
+                      )}
+                      {isPending && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
+                          <FiClock className="w-3 h-3" /> Pending
+                        </span>
+                      )}
+                      {isCompleted && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                          ✓ Completed
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm text-gray-600 mt-1">
                       {Math.ceil(Number(file.size || 0) / 60)} minutes • {file.spelling} English
+                      {file.transcription_type === 'auto' && <span className="ml-2 text-blue-600">• Auto (AI)</span>}
                     </p>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 ml-2">
                     <button
                       onClick={() => handleView(file.id)}
-                      className="inline-flex items-center gap-2 px-3 py-2 text-sm bg-mint-green text-white rounded-lg hover:bg-teal-600 transition"
+                      disabled={!isCompleted}
+                      className={`inline-flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition ${
+                        isCompleted 
+                          ? "bg-mint-green text-white hover:bg-teal-600" 
+                          : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      }`}
                     >
                       <FiEye /> View
                     </button>
                     <button
                       onClick={() => openInEditor(file)}
-                      className="inline-flex items-center gap-2 px-3 py-2 text-sm border border-teal-600 text-teal-700 rounded-lg hover:bg-teal-50 transition"
+                      disabled={!isCompleted}
+                      className={`inline-flex items-center gap-2 px-3 py-2 text-sm border rounded-lg transition ${
+                        isCompleted 
+                          ? "border-teal-600 text-teal-700 hover:bg-teal-50" 
+                          : "border-gray-200 text-gray-400 cursor-not-allowed"
+                      }`}
                     >
-                      <FiExternalLink /> Preview in Editor
+                      <FiExternalLink /> Editor
                     </button>
                   </div>
                 </div>
 
-                <div className="mt-4 flex items-center gap-3">
-                  {file.transcript?.file ? (
-                    <a
-                      href={file.transcript.file}
-                      className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
-                      download
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <FiDownload /> Download Transcript
-                    </a>
-                  ) : file.transcript?.text ? (
-                    <button
-                      onClick={() => downloadAsText(file)}
-                      className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
-                    >
-                      <FiDownload /> Download as .txt
-                    </button>
-                  ) : null}
+                {/* Show processing message or download options */}
+                <div className="mt-4">
+                  {isProcessing && (
+                    <p className="text-sm text-blue-600 flex items-center gap-2">
+                      <FiLoader className="animate-spin" />
+                      Your transcript is being generated. This may take a few minutes...
+                    </p>
+                  )}
+                  {isPending && (
+                    <p className="text-sm text-yellow-600 flex items-center gap-2">
+                      <FiClock />
+                      Waiting for transcription to start...
+                    </p>
+                  )}
+                  {isCompleted && (
+                    <div className="flex items-center gap-3">
+                      {file.transcript?.file ? (
+                        <a
+                          href={file.transcript.file}
+                          className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
+                          download
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <FiDownload /> Download Transcript
+                        </a>
+                      ) : file.transcript?.text ? (
+                        <button
+                          onClick={() => downloadAsText(file)}
+                          className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
+                        >
+                          <FiDownload /> Download as .txt
+                        </button>
+                      ) : (
+                        <p className="text-sm text-gray-500">Transcript pending...</p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
