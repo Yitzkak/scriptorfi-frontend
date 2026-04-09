@@ -1127,6 +1127,24 @@ const Textarea = forwardRef(({ fontSize, transcript, onTranscriptChange, onReque
     }
   }, [transcript, validateTimestampsEnabled]);
 
+  // Load transcript prop into Quill when it changes (e.g., from external source)
+  useEffect(() => {
+    if (transcript && quillInstanceRef.current) {
+      const currentText = quillInstanceRef.current.getText().trim();
+      // Only update if different to avoid overwriting user edits
+      if (!currentText || currentText !== transcript.trim()) {
+        console.log("[Textarea] Loading transcript prop into editor, length:", transcript.length);
+        quillInstanceRef.current.setText(transcript, 'silent');
+        // Also save to localStorage for persistence
+        try {
+          localStorage.setItem('transcript', quillInstanceRef.current.root.innerHTML);
+        } catch (e) {
+          console.warn('Failed to save transcript to localStorage:', e);
+        }
+      }
+    }
+  }, [transcript]);
+
   // Add scroll listener for viewport validation
   useEffect(() => {
     if (!validateTimestampsEnabled) return;
