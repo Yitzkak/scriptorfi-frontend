@@ -329,6 +329,17 @@ const Payment = () => {
                       <p className="text-sm text-gray-600 mt-1">
                         {Math.ceil(parseFloat(file.size) / 60)} minutes • {file.spelling} English
                       </p>
+                      <div className="mt-2">
+                        {file.transcription_type === "auto" ? (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800 border border-cyan-200">
+                            Transcription Method: Auto
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 border border-indigo-200">
+                            Transcription Method: Human
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="font-semibold text-gray-900">{currency} {(Number(file.total_cost || 0) * exchangeRate).toFixed(2)}</span>
