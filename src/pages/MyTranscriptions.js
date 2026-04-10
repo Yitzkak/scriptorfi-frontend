@@ -55,8 +55,13 @@ const MyTranscriptions = () => {
       const response = await api.get(`/api/transcriptions/${fileId}/`);
       setActiveTranscript(response.data);
     } catch (error) {
-      setMessage("Transcript not available");
-      setMessageType("error");
+      if (error.response?.status === 402) {
+        setMessage("Payment required to view transcript. Please pay for this file first.");
+        setMessageType("error");
+      } else {
+        setMessage("Transcript not available");
+        setMessageType("error");
+      }
     }
   };
 
@@ -77,8 +82,13 @@ const MyTranscriptions = () => {
       URL.revokeObjectURL(blobUrl);
     } catch (error) {
       console.error("Download failed:", error);
-      setMessage("Failed to download transcript");
-      setMessageType("error");
+      if (error.response?.status === 402) {
+        setMessage("Payment required to download transcript. Please pay for this file first.");
+        setMessageType("error");
+      } else {
+        setMessage("Failed to download transcript");
+        setMessageType("error");
+      }
     }
   };
 
@@ -120,8 +130,13 @@ const MyTranscriptions = () => {
       window.open("/editor", "_blank");
     } catch (error) {
       console.error("[openInEditor] Error:", error);
-      setMessage("Failed to open transcript in editor");
-      setMessageType("error");
+      if (error.response?.status === 402) {
+        setMessage("Payment required to open transcript in editor. Please pay for this file first.");
+        setMessageType("error");
+      } else {
+        setMessage("Failed to open transcript in editor");
+        setMessageType("error");
+      }
     }
   };
 

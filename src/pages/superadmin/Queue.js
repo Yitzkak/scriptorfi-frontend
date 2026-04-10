@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import api from "../../api/api";
 import AdminTopbar from "../../components/superadmin/AdminTopbar";
-import { FiFileText, FiUploadCloud, FiX, FiEye, FiPlay, FiPause } from "react-icons/fi";
+import { FiFileText, FiUploadCloud, FiX, FiEye, FiPlay, FiPause, FiDollarSign } from "react-icons/fi";
 
 const statusOptions = ["Pending", "In Review", "Completed"];
 
@@ -106,6 +106,19 @@ const Queue = () => {
     }
   };
 
+  const markAsPaid = async (fileId) => {
+    try {
+      setUpdating(true);
+      await api.post(`/api/superadmin/files/${fileId}/mark-paid/`);
+      setFiles((prev) => prev.map((file) => (file.id === fileId ? { ...file, payment_status: 'Paid' } : file)));
+      setError("");
+    } catch (err) {
+      setError("Failed to mark file as paid.");
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   const handleTranscriptUpload = async (event) => {
     event.preventDefault();
     if (!selectedFile) return;
@@ -186,6 +199,7 @@ const Queue = () => {
                   <th className="px-4 py-3 text-left">User</th>
                   <th className="px-4 py-3 text-left">Duration (s)</th>
                   <th className="px-4 py-3 text-left">Total</th>
+                  <th className="px-4 py-3 text-left">Payment</th>
                   <th className="px-4 py-3 text-left">Status</th>
                   <th className="px-4 py-3 text-left">Transcript</th>
                   <th className="px-4 py-3 text-left">Actions</th>
@@ -194,13 +208,13 @@ const Queue = () => {
               <tbody className="divide-y divide-gray-200">
                 {loading ? (
                   <tr>
-                    <td colSpan={8} className="px-4 py-6 text-center text-gray-500">
+                    <td colSpan={9} className="px-4 py-6 text-center text-gray-500">
                       Loading...
                     </td>
                   </tr>
                 ) : filteredFiles.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-4 py-6 text-center text-gray-500">
+                    <td colSpan={9} className="px-4 py-6 text-center text-gray-500">
                       No files found.
                     </td>
                   </tr>
@@ -233,6 +247,22 @@ const Queue = () => {
                       </td>
                       <td className="px-4 py-4 text-gray-700">{file.size}</td>
                       <td className="px-4 py-4 text-gray-700">${file.total_cost}</td>
+                      <td className="px-4 py-4">
+                        {file.payment_status === 'Paid' ? (
+                          <span className="px-3 py-1 rounded-full text-xs bg-green-100 text-green-700">
+                            Paid
+                          </span>
+                        ) : (
+                          <button
+                            disabled={updating}
+                            onClick={() => markAsPaid(file.id)}
+                            className="inline-flex items-center gap-1 px-3 py-1 text-xs bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 disabled:opacity-50"
+                          >
+                            <FiDollarSign size={12} />
+                            Mark Paid
+                          </button>
+                        )}
+                      </td>
                       <td className="px-4 py-4">
                         <span className="px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-700">
                           {file.status}

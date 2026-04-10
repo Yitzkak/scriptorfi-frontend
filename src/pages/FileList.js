@@ -161,8 +161,13 @@ const FileList = () => {
             setActiveTranscript(response.data);
             setActiveTranscriptFile(file);
         } catch (error) {
-            setMessage("Transcript not available yet.");
-            setMessageType("error");
+            if (error.response?.status === 402) {
+                setMessage("Payment required to view transcript. Please pay for this file first.");
+                setMessageType("error");
+            } else {
+                setMessage("Transcript not available yet.");
+                setMessageType("error");
+            }
         }
     };
 
@@ -192,8 +197,13 @@ const FileList = () => {
             URL.revokeObjectURL(blobUrl);
         } catch (error) {
             console.error("Download failed:", error);
-            setMessage("Failed to download transcript");
-            setMessageType("error");
+            if (error.response?.status === 402) {
+                setMessage("Payment required to download transcript. Please pay for this file first.");
+                setMessageType("error");
+            } else {
+                setMessage("Failed to download transcript");
+                setMessageType("error");
+            }
         }
     };
 
