@@ -324,12 +324,19 @@ const FilesUpload = () => {
       const fileResponse = await api.get('/api/files/');
       const claimedFile = fileResponse.data.find(f => f.id === uploadedFileId);
       const fileItem = files[0];
-      const fileData = claimedFile || {
-        id: uploadedFileId,
-        total_cost: calculateTotalCost(fileItem.duration, transcriptionType).toFixed(2),
-        size: fileItem.duration,
-        transcription_type: transcriptionType,
-      };
+      const computedCost = calculateTotalCost(fileItem.duration, transcriptionType).toFixed(2);
+      const fileData = claimedFile
+        ? {
+            ...claimedFile,
+            total_cost: computedCost,
+            transcription_type: transcriptionType,
+          }
+        : {
+            id: uploadedFileId,
+            total_cost: computedCost,
+            size: fileItem.duration,
+            transcription_type: transcriptionType,
+          };
       navigate("/dashboard/payment", { state: { fileData, fileIds: [uploadedFileId] } });
     } catch (error) {
       console.error("Checkout error:", error);
