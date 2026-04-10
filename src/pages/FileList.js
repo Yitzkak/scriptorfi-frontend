@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import api from "../api/api";
 import Alert from "../components/ui/Alert";
@@ -14,7 +15,9 @@ import {
   FiSearch,
   FiCalendar,
   FiPlay,
-  FiPause
+  FiPause,
+  FiDollarSign,
+  FiAlertTriangle
 } from "react-icons/fi";
 import { FaCoins } from "react-icons/fa";
 import { HiOutlineDocumentText } from "react-icons/hi";
@@ -22,6 +25,7 @@ import { BiTimeFive } from "react-icons/bi";
 import { useAuth } from "../authContext";
 
 const FileList = () => {
+    const navigate = useNavigate();
     const { user } = useAuth();
     const [files, setFiles] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -248,12 +252,38 @@ const FileList = () => {
       });
     };
 
+    // Calculate days until deletion for unpaid files (7 days from upload)
+    const getDaysUntilDeletion = (dateString) => {
+      const uploadDate = new Date(dateString);
+      const deletionDate = new Date(uploadDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+      const now = new Date();
+      const daysLeft = Math.ceil((deletionDate - now) / (1000 * 60 * 60 * 24));
+      return daysLeft;
+    };
+
+    // Check if file is unpaid
+    const isUnpaid = (file) => file.payment_status !== 'Paid';
+
+    // Handle Pay Now button click
+    const handlePayNow = (file) => {
+      // Clear any previous checkout data
+      localStorage.removeItem('checkoutFileList');
+      localStorage.removeItem('uploadExistingFiles');
+      localStorage.removeItem('removedFileIds');
+      
+      // Navigate to payment page with file data
+      navigate('/dashboard/payment', { 
+        state: { fileDataList: [file] }
+      });
+    };
+
     // Stats summary
     const stats = {
       total: files.length,
       completed: files.filter(f => f.status === 'Completed').length,
       processing: files.filter(f => f.status === 'Processing' || f.status === 'Pending').length,
-      failed: files.filter(f => f.status === 'Failed').length
+      failed: files.filter(f => f.status === 'Failed').length,
+      unpaid: files.filter(f => f.payment_status !== 'Paid').length
     };
   
     return (
@@ -421,19 +451,46 @@ const FileList = () => {
           ) : viewMode === 'grid' ? (
             /* Grid View */
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredFiles.map((file) => (
-                <div key={file.id} className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+              {filteredFiles.map((file) => {
+                const unpaid = isUnpaid(file);
+                const daysLeft = unpaid ? getDaysUntilDeletion(file.date_uploaded || file.uploaded_at) : null;
+                
+                return (
+                <div key={file.id} className={`bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow ${unpaid ? 'border-orange-300' : 'border-gray-200'}`}>
                   <div className="p-6">
                     {/* File Icon and Status */}
                     <div className="flex items-start justify-between mb-4">
                       <div className="bg-mint-green bg-opacity-10 p-3 rounded-lg">
                         <HiOutlineDocumentText className="text-mint-green w-8 h-8" />
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium border flex items-center gap-1 ${getStatusBadge(file.status)}`}>
-                        {getStatusIcon(file.status)}
-                        {file.status}
-                      </span>
+                      <div className="flex flex-col items-end gap-1">
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium border flex items-center gap-1 ${getStatusBadge(file.status)}`}>
+                          {getStatusIcon(file.status)}
+                          {file.status}
+                        </span>
+                        {unpaid && (
+                          <span className="px-3 py-1 rounded-full text-xs font-medium border flex items-center gap-1 bg-orange-100 text-orange-800 border-orange-200">
+                            <FiDollarSign className="w-3 h-3" />
+                            Unpaid
+                          </span>
+                        )}
+                      </div>
                     </div>
+
+                    {/* Deletion Warning for unpaid files */}
+                    {unpaid && daysLeft !== null && (
+                      <div className={`mb-3 p-2 rounded-lg flex items-center gap-2 text-xs ${
+                        daysLeft <= 2 ? 'bg-red-50 text-red-700' : 'bg-orange-50 text-orange-700'
+                      }`}>
+                        <FiAlertTriangle className="w-4 h-4 flex-shrink-0" />
+                        <span>
+                          {daysLeft <= 0 
+                            ? 'File will be deleted soon!' 
+                            : `File will be deleted in ${daysLeft} day${daysLeft === 1 ? '' : 's'}`
+                          }
+                        </span>
+                      </div>
+                    )}
 
                     {/* File Info */}
                     <h3 className="font-semibold text-gray-900 mb-2 truncate" title={file.name}>
@@ -456,7 +513,16 @@ const FileList = () => {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex gap-2 pt-4 border-t border-gray-100">
+                    <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-100">
+                      {unpaid && (
+                        <button
+                          onClick={() => handlePayNow(file)}
+                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-colors bg-orange-500 text-white hover:bg-orange-600"
+                        >
+                          <FiDollarSign className="w-4 h-4" />
+                          Pay Now
+                        </button>
+                      )}
                       <button
                         onClick={() => handlePlayPause(file)}
                         disabled={!file.file}
@@ -474,7 +540,7 @@ const FileList = () => {
                       <button
                         onClick={() => handleView(file)}
                         disabled={file.status !== "Completed"}
-                        className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                        className={`${unpaid ? '' : 'flex-1'} flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                           file.status === "Completed" 
                             ? "bg-mint-green text-white hover:bg-teal-600" 
                             : "bg-gray-100 text-gray-400 cursor-not-allowed"
@@ -492,7 +558,7 @@ const FileList = () => {
                     </div>
                   </div>
                 </div>
-              ))}
+              );})
             </div>
           ) : (
             /* List View */
@@ -514,6 +580,9 @@ const FileList = () => {
                         Status
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Payment
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Cost
                       </th>
                       <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -522,14 +591,26 @@ const FileList = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {filteredFiles.map((file) => (
-                      <tr key={file.id} className="hover:bg-gray-50 transition-colors">
+                    {filteredFiles.map((file) => {
+                      const unpaid = isUnpaid(file);
+                      const daysLeft = unpaid ? getDaysUntilDeletion(file.date_uploaded || file.uploaded_at) : null;
+                      
+                      return (
+                      <tr key={file.id} className={`hover:bg-gray-50 transition-colors ${unpaid ? 'bg-orange-50' : ''}`}>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-3">
                             <div className="bg-mint-green bg-opacity-10 p-2 rounded">
                               <HiOutlineDocumentText className="text-mint-green w-5 h-5" />
                             </div>
-                            <span className="font-medium text-gray-900">{file.name}</span>
+                            <div>
+                              <span className="font-medium text-gray-900">{file.name}</span>
+                              {unpaid && daysLeft !== null && (
+                                <div className={`text-xs mt-1 flex items-center gap-1 ${daysLeft <= 2 ? 'text-red-600' : 'text-orange-600'}`}>
+                                  <FiAlertTriangle className="w-3 h-3" />
+                                  {daysLeft <= 0 ? 'Deleting soon!' : `Deletes in ${daysLeft} day${daysLeft === 1 ? '' : 's'}`}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
@@ -544,9 +625,27 @@ const FileList = () => {
                             {file.status}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 flex items-center gap-1">
-                          <FaCoins className="w-4 h-4" />
-                          {currency} {(Number(file.total_cost || 0) * exchangeRate).toFixed(2)}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {unpaid ? (
+                            <button
+                              onClick={() => handlePayNow(file)}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition-colors text-xs font-medium"
+                            >
+                              <FiDollarSign className="w-3 h-3" />
+                              Pay Now
+                            </button>
+                          ) : (
+                            <span className="px-3 py-1 rounded-full text-xs font-medium border inline-flex items-center gap-1 bg-green-100 text-green-800 border-green-200">
+                              <FiCheckCircle className="w-3 h-3" />
+                              Paid
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          <div className="flex items-center gap-1">
+                            <FaCoins className="w-4 h-4" />
+                            {currency} {(Number(file.total_cost || 0) * exchangeRate).toFixed(2)}
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex items-center justify-end gap-2">
@@ -587,7 +686,7 @@ const FileList = () => {
                           </div>
                         </td>
                       </tr>
-                    ))}
+                    );})}
                   </tbody>
                 </table>
               </div>
