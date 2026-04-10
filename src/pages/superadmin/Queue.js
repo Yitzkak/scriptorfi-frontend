@@ -252,6 +252,20 @@ const Queue = () => {
                           <span className="px-3 py-1 rounded-full text-xs bg-green-100 text-green-700">
                             Paid
                           </span>
+                        ) : file.payment_status === 'Under Review' ? (
+                          <div className="flex flex-col gap-1">
+                            <span className="px-3 py-1 rounded-full text-xs bg-yellow-100 text-yellow-700">
+                              Under Review
+                            </span>
+                            <button
+                              disabled={updating}
+                              onClick={() => markAsPaid(file.id)}
+                              className="inline-flex items-center gap-1 px-3 py-1 text-xs bg-green-100 text-green-700 rounded-lg hover:bg-green-200 disabled:opacity-50"
+                            >
+                              <FiDollarSign size={12} />
+                              Confirm Payment
+                            </button>
+                          </div>
                         ) : (
                           <button
                             disabled={updating}

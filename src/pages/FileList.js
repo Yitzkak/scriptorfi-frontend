@@ -463,10 +463,11 @@ const FileList = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredFiles.map((file) => {
                 const unpaid = isUnpaid(file);
-                const daysLeft = unpaid ? getDaysUntilDeletion(file.date_uploaded || file.uploaded_at) : null;
+                const underReview = file.payment_status === 'Under Review';
+                const daysLeft = (unpaid && !underReview) ? getDaysUntilDeletion(file.date_uploaded || file.uploaded_at) : null;
                 
                 return (
-                <div key={file.id} className={`bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow ${unpaid ? 'border-orange-300' : 'border-gray-200'}`}>
+                <div key={file.id} className={`bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow ${unpaid && !underReview ? 'border-orange-300' : underReview ? 'border-yellow-300' : 'border-gray-200'}`}>
                   <div className="p-6">
                     {/* File Icon and Status */}
                     <div className="flex items-start justify-between mb-4">
@@ -478,7 +479,11 @@ const FileList = () => {
                           {getStatusIcon(file.status)}
                           {file.status}
                         </span>
-                        {unpaid && (
+                        {underReview ? (
+                          <span className="px-3 py-1 rounded-full text-xs font-medium border flex items-center gap-1 bg-yellow-100 text-yellow-800 border-yellow-200">
+                            Under Review
+                          </span>
+                        ) : unpaid && (
                           <span className="px-3 py-1 rounded-full text-xs font-medium border flex items-center gap-1 bg-orange-100 text-orange-800 border-orange-200">
                             <FiDollarSign className="w-3 h-3" />
                             Unpaid
@@ -524,7 +529,7 @@ const FileList = () => {
 
                     {/* Actions */}
                     <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-100">
-                      {unpaid && (
+                      {unpaid && !underReview && (
                         <button
                           onClick={() => handlePayNow(file)}
                           className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-colors bg-orange-500 text-white hover:bg-orange-600"
@@ -603,10 +608,11 @@ const FileList = () => {
                   <tbody className="divide-y divide-gray-200">
                     {filteredFiles.map((file) => {
                       const unpaid = isUnpaid(file);
-                      const daysLeft = unpaid ? getDaysUntilDeletion(file.date_uploaded || file.uploaded_at) : null;
+                      const underReview = file.payment_status === 'Under Review';
+                      const daysLeft = (unpaid && !underReview) ? getDaysUntilDeletion(file.date_uploaded || file.uploaded_at) : null;
                       
                       return (
-                      <tr key={file.id} className={`hover:bg-gray-50 transition-colors ${unpaid ? 'bg-orange-50' : ''}`}>
+                      <tr key={file.id} className={`hover:bg-gray-50 transition-colors ${unpaid && !underReview ? 'bg-orange-50' : underReview ? 'bg-yellow-50' : ''}`}>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-3">
                             <div className="bg-mint-green bg-opacity-10 p-2 rounded">
@@ -614,7 +620,7 @@ const FileList = () => {
                             </div>
                             <div>
                               <span className="font-medium text-gray-900">{file.name}</span>
-                              {unpaid && daysLeft !== null && (
+                              {unpaid && !underReview && daysLeft !== null && (
                                 <div className={`text-xs mt-1 flex items-center gap-1 ${daysLeft <= 2 ? 'text-red-600' : 'text-orange-600'}`}>
                                   <FiAlertTriangle className="w-3 h-3" />
                                   {daysLeft <= 0 ? 'Deleting soon!' : `Deletes in ${daysLeft} day${daysLeft === 1 ? '' : 's'}`}
@@ -636,7 +642,16 @@ const FileList = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          {unpaid ? (
+                          {file.payment_status === 'Paid' ? (
+                            <span className="px-3 py-1 rounded-full text-xs font-medium border inline-flex items-center gap-1 bg-green-100 text-green-800 border-green-200">
+                              <FiCheckCircle className="w-3 h-3" />
+                              Paid
+                            </span>
+                          ) : file.payment_status === 'Under Review' ? (
+                            <span className="px-3 py-1 rounded-full text-xs font-medium border inline-flex items-center gap-1 bg-yellow-100 text-yellow-800 border-yellow-200">
+                              Under Review
+                            </span>
+                          ) : (
                             <button
                               onClick={() => handlePayNow(file)}
                               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition-colors text-xs font-medium"
@@ -644,11 +659,6 @@ const FileList = () => {
                               <FiDollarSign className="w-3 h-3" />
                               Pay Now
                             </button>
-                          ) : (
-                            <span className="px-3 py-1 rounded-full text-xs font-medium border inline-flex items-center gap-1 bg-green-100 text-green-800 border-green-200">
-                              <FiCheckCircle className="w-3 h-3" />
-                              Paid
-                            </span>
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">

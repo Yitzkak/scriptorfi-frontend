@@ -3,8 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../authContext";
 import api from "../api/api";
 import Alert from "../components/ui/Alert";
-import { FiUpload, FiCheckCircle, FiFileText } from "react-icons/fi";
-import { FaCoins } from "react-icons/fa";
+import { FiUpload, FiCheckCircle, FiFileText, FiX, FiCopy } from "react-icons/fi";
+import { FaCoins, FaPaypal } from "react-icons/fa";
 
 const Payment = () => {
   const location = useLocation();
@@ -20,10 +20,14 @@ const Payment = () => {
   const [paystackEmail, setPaystackEmail] = useState("");
   const [paystackLoading, setPaystackLoading] = useState(false);
   const [paypalLoading, setPaypalLoading] = useState(false);
+  const [showPaypalModal, setShowPaypalModal] = useState(false);
+  const [copiedEmail, setCopiedEmail] = useState(false);
   // Currency preference comes from the user's profile; fall back to USD until it's available
   const [currency, setCurrency] = useState('USD');
   const [exchangeRate, setExchangeRate] = useState(1);
   const [availableCurrencies, setAvailableCurrencies] = useState(['USD']);
+
+  const PAYPAL_EMAIL = "billing@scriptorfi.com";
 
   // Load user profile to get currency preference
   useEffect(() => {
@@ -232,41 +236,38 @@ const Payment = () => {
       alert("Please upload your file first.");
       return;
     }
+    // Show the PayPal modal instead of redirecting
+    setShowPaypalModal(true);
+  };
 
+  const copyPaypalEmail = () => {
+    navigator.clipboard.writeText(PAYPAL_EMAIL);
+    setCopiedEmail(true);
+    setTimeout(() => setCopiedEmail(false), 2000);
+  };
+
+  const handlePaypalConfirm = async () => {
     setPaypalLoading(true);
     try {
-      const isBatch = fileList.length > 1;
-      const payload = isBatch
-        ? {
-            file_ids: fileList.map((f) => f.id),
-            return_url: `${window.location.origin}/dashboard/payment/success`,
-            cancel_url: `${window.location.origin}/dashboard/payment/cancel`,
-          }
-        : {
-            file_id: fileList[0].id,
-            return_url: `${window.location.origin}/dashboard/payment/success`,
-            cancel_url: `${window.location.origin}/dashboard/payment/cancel`,
-          };
-
-      const response = await api.post(
-        isBatch ? "/api/payment/create-batch/" : "/api/payment/create/",
-        payload
-      );
-
-      if (response.data?.approval_url) {
-        if (isBatch) {
-          sessionStorage.setItem("paypal_file_ids", JSON.stringify(fileList.map((f) => f.id)));
-        } else {
-          sessionStorage.setItem("paypal_file_id", fileList[0].id);
-        }
-        sessionStorage.setItem("paypal_payment_id", response.data.payment_id);
-        // Set auto-transcription file IDs before redirecting
-        setAutoTranscriptionIds();
-        window.location.href = response.data.approval_url;
-      }
+      const file_ids = fileList.map((f) => f.id);
+      await api.post("/api/payment/submit-for-review/", { file_ids });
+      
+      // Clear file list from storage
+      localStorage.removeItem(FILE_LIST_STORAGE_KEY);
+      localStorage.removeItem(UPLOAD_LIST_STORAGE_KEY);
+      localStorage.removeItem(REMOVED_LIST_STORAGE_KEY);
+      
+      setShowPaypalModal(false);
+      setMessage("Payment submitted for review! Our team will verify your payment shortly.");
+      setMessageType("success");
+      
+      // Navigate to files page after a short delay
+      setTimeout(() => {
+        navigate("/dashboard/files");
+      }, 2000);
     } catch (error) {
-      console.error("PayPal payment creation error:", error);
-      setMessage(error.response?.data?.error || "Failed to create PayPal payment");
+      console.error("Payment submission error:", error);
+      setMessage(error.response?.data?.error || "Failed to submit payment for review");
       setMessageType("error");
       setPaypalLoading(false);
     }
@@ -471,6 +472,90 @@ const Payment = () => {
           </div>
         </div>
       </div>
+
+      {/* PayPal Payment Modal */}
+      {showPaypalModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 relative">
+            <button
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+              onClick={() => setShowPaypalModal(false)}
+            >
+              <FiX size={20} />
+            </button>
+
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FaPaypal className="w-8 h-8 text-blue-600" />
+              </div>
+              <h2 className="text-xl font-semibold text-gray-900">PayPal Manual Transfer</h2>
+              <p className="text-sm text-gray-500 mt-2">
+                Send your payment to the address below
+              </p>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <p className="text-sm text-gray-600 mb-2">PayPal Email:</p>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 bg-white px-3 py-2 rounded border border-blue-200 text-blue-800 font-medium text-sm">
+                  {PAYPAL_EMAIL}
+                </code>
+                <button
+                  onClick={copyPaypalEmail}
+                  className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition flex items-center gap-1"
+                >
+                  <FiCopy size={16} />
+                  {copiedEmail ? "Copied!" : "Copy"}
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+              <p className="text-sm text-yellow-800">
+                <strong>Important:</strong> Please include your file name(s) in the payment note:
+              </p>
+              <ul className="text-sm text-yellow-700 mt-2 list-disc list-inside">
+                {fileList.map((file) => (
+                  <li key={file.id}>{file.name}</li>
+                ))}
+              </ul>
+              <p className="text-sm text-yellow-800 mt-2">
+                <strong>Amount:</strong> ${totalCost.toFixed(2)} USD
+              </p>
+            </div>
+
+            <p className="text-xs text-gray-500 text-center mb-4">
+              After sending payment, click "I've Paid" to notify our team. Payment will be verified within 24 hours.
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowPaypalModal(false)}
+                className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-200 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handlePaypalConfirm}
+                disabled={paypalLoading}
+                className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {paypalLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <FiCheckCircle size={18} />
+                    I've Paid
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
