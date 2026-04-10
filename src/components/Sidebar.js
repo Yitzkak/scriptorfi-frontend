@@ -61,15 +61,6 @@ const Sidebar = () => {
     
     const SidebarContent = () => (
       <>
-        {/* Logo/Brand */}
-        <div className="px-6 py-6 border-b border-gray-200">
-          <div className="flex items-center gap-2">
-            <img src="/images/scriptorfi-logo-icon.png" alt="Scriptorfi Logo" className="h-8 w-8" />
-            <h2 className="text-xl font-bold text-gray-800">Scriptorfi</h2>
-          </div>
-          <p className="text-xs text-gray-500 mt-1">Transcription Platform</p>
-        </div>
-
         {/* Navigation */}
         <nav className="flex-1 px-4 py-6 space-y-2">
           {menuItems.map((item) => {
