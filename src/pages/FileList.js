@@ -558,7 +558,7 @@ const FileList = () => {
                     </div>
                   </div>
                 </div>
-              );})
+              );})}
             </div>
           ) : (
             /* List View */
