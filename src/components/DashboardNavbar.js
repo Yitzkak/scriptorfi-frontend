@@ -64,12 +64,8 @@ const DashboardNavbar = () => {
     <nav className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-20">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo - Hidden on mobile when sidebar handles it */}
+          {/* Empty div for spacing - logo is in sidebar */}
           <div className="hidden lg:flex items-center">
-            <Link to="/" className="flex items-center gap-2">
-              <img src="/images/scriptorfi-logo-icon.png" alt="Scriptorfi Logo" className="h-8 w-8" />
-              <span className="text-xl font-bold text-gray-800">Scriptorfi</span>
-            </Link>
           </div>
 
           {/* Right Section */}
