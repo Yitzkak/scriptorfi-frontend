@@ -3,9 +3,19 @@ import { createContext, useContext, useState } from 'react';
 // Create the AuthContext
 const AuthContext = createContext();
 
+// Helper to get initial user from localStorage
+const getInitialUser = () => {
+    try {
+        const storedUser = localStorage.getItem('user');
+        return storedUser ? JSON.parse(storedUser) : null;
+    } catch {
+        return null;
+    }
+};
+
 // Create a provider component
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null); // Store user info here
+    const [user, setUser] = useState(getInitialUser); // Restore user from localStorage on init
 
 
     const login = (userData) => {
