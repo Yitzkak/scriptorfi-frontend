@@ -296,6 +296,8 @@ const Payment = () => {
 
   const totalCost = fileList.reduce((sum, file) => sum + Number(file.total_cost || 0), 0);
   const totalDuration = fileList.reduce((sum, file) => sum + Number(file.size || 0), 0);
+  const totalInSelectedCurrency = totalCost * exchangeRate;
+  const showLowAmountUssdNote = currency === "NGN" && totalInSelectedCurrency < 500;
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -435,6 +437,12 @@ const Payment = () => {
                 <p className="text-xs text-gray-500 text-center">
                   Secure card payment powered by Paystack
                 </p>
+                {showLowAmountUssdNote && (
+                  <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+                    Low NGN amount detected. USSD may show fewer bank options for this transaction amount.
+                    You can still use Card or Bank Transfer.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-3 mb-4">
