@@ -28,6 +28,8 @@ const Footer = () => {
           <ul className="space-y-2">
             <Link to="/about" className=" hover:text-slate-100"><li className="hover:text-[#0FFCBE] py-2">About Us</li></Link>
             <Link to="/contact" className="hover:text-slate-100"><li className=" hover:text-[#0FFCBE] py-2">Contact</li></Link>
+            <Link to="/sample-transcripts" className="hover:text-slate-100"><li className="hover:text-[#0FFCBE] py-2">Sample Transcripts</li></Link>
+            <Link to="/faq" className="hover:text-slate-100"><li className="hover:text-[#0FFCBE] py-2">FAQ</li></Link>
             <Link to="/privacy-policy" className="hover:text-slate-100"><li className="hover:text-[#0FFCBE] py-2">Privacy & Policy</li></Link>
             <Link to="/blog" className="hover:text-slate-100"><li className="hover:text-[#0FFCBE] md:py-2">Blog</li></Link>
           </ul>

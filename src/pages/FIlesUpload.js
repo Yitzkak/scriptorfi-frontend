@@ -16,6 +16,7 @@ import {
 } from "react-icons/fi";
 import { FaCoins } from "react-icons/fa";
 import getSymbolFromCurrency from 'currency-symbol-map';
+import LaunchOfferBanner from "../components/LaunchOfferBanner";
 
 const FilesUpload = () => {
   const navigate = useNavigate();
@@ -349,6 +350,10 @@ const FilesUpload = () => {
           <p className="text-lg text-gray-600">
             Professional transcription service • Fast turnaround • Accurate results
           </p>
+        </div>
+
+        <div className="mb-8">
+          <LaunchOfferBanner compact />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

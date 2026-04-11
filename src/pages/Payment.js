@@ -5,6 +5,7 @@ import api from "../api/api";
 import Alert from "../components/ui/Alert";
 import { FiUpload, FiCheckCircle, FiFileText, FiX, FiCopy } from "react-icons/fi";
 import { FaCoins, FaPaypal } from "react-icons/fa";
+import LaunchOfferBanner from "../components/LaunchOfferBanner";
 
 const Payment = () => {
   const location = useLocation();
@@ -311,6 +312,10 @@ const Payment = () => {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Complete Your Order</h1>
           <p className="text-gray-600">Review your order and proceed with payment</p>
+        </div>
+
+        <div className="mb-6">
+          <LaunchOfferBanner compact />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -27,6 +27,8 @@ import AdminSettings from './pages/superadmin/Settings';
 import { NotificationProvider } from './NotificationContext';
 import Notifications from './components/Notifications';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import FAQ from './pages/FAQ';
+import SampleTranscripts from './pages/SampleTranscripts';
 import FilesUpload from './pages/FIlesUpload';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
@@ -51,6 +53,8 @@ const router = createBrowserRouter([
       { path: "login", element: <Login /> },
       { path: "register", element: <Register /> },
       { path: "privacy-policy", element: <PrivacyPolicy /> },
+      { path: "faq", element: <FAQ /> },
+      { path: "sample-transcripts", element: <SampleTranscripts /> },
       { path: "upload", element: <FilesUpload /> },
       { path: "forgot-password", element: <ForgotPassword /> },
       { path: "reset-password", element: <ResetPassword /> },

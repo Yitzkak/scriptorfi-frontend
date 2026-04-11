@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import getSymbolFromCurrency from 'currency-symbol-map';
 import { FiZap, FiUser } from "react-icons/fi";
 import { FaRobot } from "react-icons/fa";
+import LaunchOfferBanner from "./LaunchOfferBanner";
 
 const Pricing = () => {
   const [duration, setDuration] = useState(0);
@@ -88,6 +89,10 @@ const Pricing = () => {
           <p className="mt-4 text-lg text-gray-600">
             Clear per-minute rates with optional add-ons. Know your total before you upload.
           </p>
+        </div>
+
+        <div className="mt-6 max-w-4xl mx-auto">
+          <LaunchOfferBanner compact />
         </div>
 
         {/* Toggle */}

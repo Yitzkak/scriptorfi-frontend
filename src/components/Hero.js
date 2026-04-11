@@ -31,6 +31,19 @@ const Hero = () => {
         <p className="text-base text-black max-w-lg mt-4 mb-6 md:text-lg lg:text-xl">
         Powered by AI, Perfected by Humans. Choose instant Google Chirp AI auto-transcription or expert human review — both at transparent per-minute rates.
         </p>
+
+        <p className="text-sm md:text-base text-gray-900 max-w-2xl mb-6 font-medium">
+          Scriptorfi turns your audio and video into clean, publication-ready transcripts fast, with AI speed or human-reviewed accuracy at transparent per-minute pricing.
+        </p>
+
+        <div className="flex flex-wrap items-center justify-center gap-4 mb-6 text-sm font-semibold">
+          <Link to="/sample-transcripts" className="text-gray-900 underline hover:text-black">
+            View Sample Transcripts
+          </Link>
+          <Link to="/faq" className="text-gray-900 underline hover:text-black">
+            Read FAQ
+          </Link>
+        </div>
         
         <div className="flex space-x-4">
           <button
