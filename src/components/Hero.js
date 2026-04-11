@@ -2,6 +2,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiZap } from 'react-icons/fi';
+import LaunchOfferBanner from './LaunchOfferBanner';
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -12,7 +13,10 @@ const Hero = () => {
   };
 
   return (
-    <div className="bg-[#0FFCBE] flex flex-col items-center justify-center text-center min-h-screen pt-20 pb-16 px-4 md:px-10 lg:px-20">
+    <div className="relative bg-[#0FFCBE] flex flex-col items-center justify-center text-center min-h-screen pt-20 pb-16 px-4 md:px-10 lg:px-20">
+      <div className="pointer-events-auto absolute left-0 right-0 top-24 z-10 mx-auto max-w-6xl px-4 md:px-8">
+        <LaunchOfferBanner compact />
+      </div>
       <div className="flex flex-col items-center">
         {/* Auto-transcription badge */}
         <Link
