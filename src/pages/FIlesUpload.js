@@ -56,7 +56,6 @@ const FilesUpload = () => {
         setCurrencyLoading(true);
         const response = await api.get('/api/user-profile/');
         if (response.data.currency) {
-          console.log('User currency from profile:', response.data.currency);
           setCurrency(response.data.currency);
         }
       } catch (error) {
@@ -76,7 +75,6 @@ const FilesUpload = () => {
   useEffect(() => {
     const fetchExchangeRate = async () => {
       try {
-        console.log('Fetching exchange rate for currency:', currency);
         const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
         const data = await response.json();
         
@@ -88,20 +86,17 @@ const FilesUpload = () => {
           // Add USD to the list since it's the base currency
           const currencies = ['USD', ...Object.keys(data.rates)].sort();
           setAvailableCurrencies(currencies);
-          console.log('Available currencies:', currencies);
           
           if (currency && currency !== 'USD') {
             const rate = data.rates[currency];
             if (rate) {
               setExchangeRate(rate);
-              console.log(`✓ Exchange rate for ${currency}: ${rate}`);
             } else {
               console.warn(`✗ Exchange rate not found for ${currency}, using 1`);
               setExchangeRate(1);
             }
           } else {
             setExchangeRate(1);
-            console.log('Currency is USD, exchange rate set to 1');
           }
         }
       } catch (error) {
@@ -660,7 +655,6 @@ const FilesUpload = () => {
                       setCurrency(newCurrency);
                       // Save currency preference to backend
                       api.put('/api/update-profile/', { currency: newCurrency })
-                        .then(() => console.log(`Currency saved: ${newCurrency}`))
                         .catch(error => console.error('Error saving currency preference:', error));
                     }}
                     className="flex-1 bg-white bg-opacity-20 border border-white border-opacity-30 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"

@@ -219,7 +219,6 @@ const MediaPlayer = forwardRef(({ mediaFile, volume, amplification = 1, speed, p
     if (mediaFile) {
       const isVideoFile = checkIfVideo(mediaFile);
       setIsVideo(isVideoFile);
-      console.log('[MediaPlayer] mediaFile set. isVideo:', isVideoFile, 'performanceMode:', performanceMode);
       
       if (isVideoFile) {
         // For video files, create a URL for the video element
@@ -243,7 +242,6 @@ const MediaPlayer = forwardRef(({ mediaFile, volume, amplification = 1, speed, p
         const fileUrl = URL.createObjectURL(mediaFile);
         if (performanceMode) {
           // Use hidden HTMLAudioElement for long files; show loading until metadata ready
-          console.log('[MediaPlayer] Performance mode: setting audio src and showing loader');
           if (setAudioLoading) setAudioLoading(true);
           setIsLongAudioReady(false);
           if (longAudioRef.current) {
@@ -262,7 +260,6 @@ const MediaPlayer = forwardRef(({ mediaFile, volume, amplification = 1, speed, p
               }, remaining);
             };
             const onCanPlayThrough = () => {
-              console.log('[MediaPlayer] long audio canplaythrough. duration:', longAudioRef.current?.duration);
               hideLoader();
               setIsLongAudioReady(true);
               longAudioRef.current?.removeEventListener('canplaythrough', onCanPlayThrough);
@@ -284,10 +281,8 @@ const MediaPlayer = forwardRef(({ mediaFile, volume, amplification = 1, speed, p
           }
           if (wavesurfer.current) {
             wavesurfer.current.load(fileUrl);
-            console.log('[MediaPlayer] WaveSurfer loading start');
             if (setAudioLoading) setAudioLoading(true);
             wavesurfer.current.once('ready', () => {
-              console.log('[MediaPlayer] WaveSurfer ready');
               if (setAudioLoading) setAudioLoading(false);
             });
           }
@@ -384,7 +379,6 @@ const MediaPlayer = forwardRef(({ mediaFile, volume, amplification = 1, speed, p
       videoRef.current.playbackRate = speed;
     }
     if (longAudioRef.current && !isVideo && performanceMode) {
-      console.log('[MediaPlayer] set long audio playbackRate:', speed);
       longAudioRef.current.playbackRate = speed;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -398,7 +392,6 @@ const MediaPlayer = forwardRef(({ mediaFile, volume, amplification = 1, speed, p
       videoRef.current.volume = volume;
     }
     if (longAudioRef.current && !isVideo && performanceMode) {
-      console.log('[MediaPlayer] set long audio volume:', volume);
       longAudioRef.current.volume = volume;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

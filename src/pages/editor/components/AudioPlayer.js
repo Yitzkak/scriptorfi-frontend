@@ -90,11 +90,6 @@ const AudioPlayer = forwardRef(({ audioFile, volume, amplification = 1, speed, s
         const time = percent * duration;
         onWaveformClick(time);
       } else {
-        console.log('Missing wavesurfer, onWaveformClick, or waveformRef:', {
-          hasWavesurfer: !!wavesurfer.current,
-          hasOnWaveformClick: !!onWaveformClick,
-          hasWaveformRef: !!waveformRef.current
-        });
       }
     };
 
@@ -142,7 +137,6 @@ const AudioPlayer = forwardRef(({ audioFile, volume, amplification = 1, speed, s
   useEffect(() => {
     if (wavesurfer.current) {
       wavesurfer.current.setVolume(volume); // Update Wavesurfer's volume
-      console.log('useEffect in AudioPlayer', volume);
     }
   }, [volume]); 
 
@@ -156,10 +150,8 @@ const AudioPlayer = forwardRef(({ audioFile, volume, amplification = 1, speed, s
   }
 
   const updateAmplification = (factor) => {
-    console.log('updateAmplification called with factor:', factor);
     if (gainNode.current) {
       gainNode.current.gain.value = Math.max(factor, 1);
-      console.log('Amplification set to:', gainNode.current.gain.value);
     }
   };
 
@@ -186,7 +178,6 @@ const AudioPlayer = forwardRef(({ audioFile, volume, amplification = 1, speed, s
     },
     skipForward: (seconds) => {
       if (wavesurfer.current) {
-          console.log('wavesurfer: Current time', wavesurfer.current.getCurrentTime());
           const currentPosition = wavesurfer.current.getCurrentTime(); // Current time in seconds
           const duration = wavesurfer.current.getDuration(); // Total audio duration in seconds
           const newPosition = Math.min(currentPosition + seconds, duration); // Ensure not to skip beyond the track
@@ -197,8 +188,6 @@ const AudioPlayer = forwardRef(({ audioFile, volume, amplification = 1, speed, s
   
     skipBack: (seconds) => {
       if (wavesurfer.current) {
-          console.log('wavesurfer: Back Current time', wavesurfer.current.getCurrentTime());
-          console.log('wavesurfer: skipping forward', wavesurfer.current);
           const currentPosition = wavesurfer.current.getCurrentTime();
           const newPosition = Math.max(currentPosition - seconds, 0); // Ensure not to skip before the track starts
   

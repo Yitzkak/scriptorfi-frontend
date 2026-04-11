@@ -106,15 +106,11 @@ const MyTranscriptions = () => {
   const openInEditor = async (file) => {
     try {
       let transcriptText = file?.transcript?.text;
-      console.log("[openInEditor] file:", file.id, "transcript from file:", transcriptText?.length || 0);
       
       if (!transcriptText) {
         const response = await api.get(`/api/transcriptions/${file.id}/`);
-        console.log("[openInEditor] API response:", response.data);
         transcriptText = response.data?.text || "";
       }
-      
-      console.log("[openInEditor] Final transcript length:", transcriptText?.length || 0);
 
       const payload = {
         text: transcriptText,
@@ -124,7 +120,6 @@ const MyTranscriptions = () => {
       };
       
       localStorage.setItem("scriptorfi_editor_payload", JSON.stringify(payload));
-      console.log("[openInEditor] Saved to localStorage, opening /editor");
 
       // Don't use noopener - it can prevent localStorage access in the new window
       window.open("/editor", "_blank");

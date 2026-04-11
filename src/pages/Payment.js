@@ -59,7 +59,6 @@ const Payment = () => {
             const rate = data.rates[currency];
             if (rate) {
               setExchangeRate(rate);
-              console.log(`Exchange rate for ${currency}: ${rate}`);
             } else {
               console.warn(`Exchange rate not found for ${currency}, using 1`);
               setExchangeRate(1);

@@ -937,7 +937,6 @@ const Textarea = forwardRef(({ fontSize, transcript, onTranscriptChange, onReque
           try {
             // Get the text content around the timestamp
             const textAround = quillInstanceRef.current.getText(Math.max(0, closest.charIndex - 10), 50);
-            console.log('textAround', textAround);
             
             // Find the timestamp in the text
             const timestampMatch = textAround.match(/(\d+:\d+:\d+\.?\d*)\s+S\d+:/);
@@ -946,7 +945,6 @@ const Textarea = forwardRef(({ fontSize, transcript, onTranscriptChange, onReque
               const textNodes = editorContainer.querySelectorAll('*');
               for (let node of textNodes) {
                 if (node.textContent && node.textContent.includes(timestampMatch[0])) {
-                  console.log('Found element with timestamp:', node);
                   node.scrollIntoView({ 
                     behavior: 'smooth', 
                     block: 'center',
@@ -957,7 +955,6 @@ const Textarea = forwardRef(({ fontSize, transcript, onTranscriptChange, onReque
               }
             }
           } catch (error) {
-            console.log('scrollIntoView failed, using manual scroll', error);
           }
         }
       }, 50); // 50ms delay
@@ -1101,12 +1098,6 @@ const Textarea = forwardRef(({ fontSize, transcript, onTranscriptChange, onReque
       const speakerMatches = content.match(/\bS\d+:/g) || [];
       const speakerSet = new Set(speakerMatches.map(s => s.replace(/:$/, '')));
       const count = speakerSet.size;
-      console.log('Speaker detection:', { 
-        matches: speakerMatches, 
-        unique: Array.from(speakerSet), 
-        count,
-        contentLength: content.length 
-      });
       setDetectedSpeakerCount(count);
     }
   }, [transcript]); // Only depend on transcript changes
@@ -1134,7 +1125,6 @@ const Textarea = forwardRef(({ fontSize, transcript, onTranscriptChange, onReque
       const currentText = quillInstanceRef.current.getText().trim();
       // Always update if transcript prop is provided and different from current content
       if (currentText !== transcript.trim()) {
-        console.log("[Textarea] Loading transcript prop into editor, length:", transcript.length);
         quillInstanceRef.current.setText(transcript, 'silent');
         // Also save to localStorage for persistence
         try {
@@ -1205,7 +1195,6 @@ const Textarea = forwardRef(({ fontSize, transcript, onTranscriptChange, onReque
       }
       repeatedPositionsRef.current = [];
       setCurrentRepeatedIndex(0);
-      console.log('[Textarea] Cleared repeated speaker highlights');
       // Validation removed - user must click button to validate
       return;
     }
@@ -1233,7 +1222,6 @@ const Textarea = forwardRef(({ fontSize, transcript, onTranscriptChange, onReque
     
     // If no repeats found, just return without alert
     if (positions.length === 0) {
-      console.log('[Textarea] No repeated consecutive speakers found');
       return;
     }
     
@@ -1254,8 +1242,6 @@ const Textarea = forwardRef(({ fontSize, transcript, onTranscriptChange, onReque
     // Save positions for navigation
     repeatedPositionsRef.current = positions;
     setCurrentRepeatedIndex(0);
-
-    console.log(`[Textarea] Highlighted ${positions.length} repeated speaker(s)`);
   };
 
   // Navigate to a repeated speaker occurrence by ordinal index
@@ -1557,7 +1543,6 @@ const Textarea = forwardRef(({ fontSize, transcript, onTranscriptChange, onReque
     // quill.keyboard.addBinding(
     //   { key: 13 }, // Enter key
     //   function () {
-    //     console.log('key binding done');
     //     if (suggestionsRef.current?.length > 0) {
     //       insertSuggestionAtContext(suggestionsRef.current[0]);
     //       return false; // Prevents default Enter behavior
@@ -1620,7 +1605,6 @@ const Textarea = forwardRef(({ fontSize, transcript, onTranscriptChange, onReque
 
     // Remove highlight when clicking inside the editor
     const handleEditorClick = () => {
-      console.log('Clicked inside the editor');
       if (lastHighlightedRange) {
         lastHighlightedRange = null; // Reset the stored range
       }
@@ -1630,7 +1614,6 @@ const Textarea = forwardRef(({ fontSize, transcript, onTranscriptChange, onReque
         setReplaceMode(null);
         try { clearCursorOverlay(); } catch (e) {}
         try { clearHighlightedRanges(); } catch (e) {}
-        console.log('[Textarea] Exited multi-edit mode due to click');
       }
     };
 
@@ -1665,7 +1648,6 @@ const Textarea = forwardRef(({ fontSize, transcript, onTranscriptChange, onReque
           setReplaceMode(null);
           try { clearCursorOverlay(); } catch (e) {}
           try { clearHighlightedRanges(); } catch (e) {}
-          console.log('[Textarea] Multi-edit mode exited via Escape');
           return;
         }
 
@@ -1710,7 +1692,6 @@ const Textarea = forwardRef(({ fontSize, transcript, onTranscriptChange, onReque
           virtualCursorsRef.current = cursors;
           setReplaceMode({ selectedText });
           replaceInputRef.current = '';
-          console.log(`[Textarea] Multi-edit mode started for "${selectedText}", ${cursors.length} cursors created`);
 
           // Optionally select first occurrence to show user position
           const first = cursors[0];
@@ -1970,7 +1951,6 @@ const Textarea = forwardRef(({ fontSize, transcript, onTranscriptChange, onReque
             localStorage.removeItem('transcript_versions');
             // Retry saving the transcript
             localStorage.setItem('transcript', updatedContent);
-            console.log('Successfully saved transcript after clearing version history');
           } catch (retryError) {
             console.error('Failed to save transcript even after clearing space:', retryError);
             // Alert user only once
@@ -2041,7 +2021,6 @@ const Textarea = forwardRef(({ fontSize, transcript, onTranscriptChange, onReque
   useEffect(() => {
     if (!contextMenu.visible && suggestions.length === 0) return;
     function handleGlobalClick(event) {
-      console.log('[Suggestions Popup] Global click handler fired');
       const menuContains = contextMenuRef.current && contextMenuRef.current.contains(event.target);
       const suggestionsContains = suggestionsBoxRef.current && suggestionsBoxRef.current.contains(event.target);
       if (!menuContains && !suggestionsContains) {
@@ -2068,7 +2047,6 @@ const Textarea = forwardRef(({ fontSize, transcript, onTranscriptChange, onReque
   }, [editorRef]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Debug: log contextMenu before return
-  console.log('contextMenu state:', contextMenu);
 
   // Helper: checks if a string ends with sentence-ending punctuation
   function endsWithPunctuation(str) {

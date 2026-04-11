@@ -101,7 +101,6 @@ const Settings = () => {
     api
       .get("/api/user-profile/")
       .then((response) => {
-        console.log("Data here", response.data);
         setFormData((prev) => ({
           ...prev,
           first_name: response.data.first_name,
