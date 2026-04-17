@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import api from "../../api/api";
 import AdminTopbar from "../../components/superadmin/AdminTopbar";
-import { FiFileText, FiUploadCloud, FiX, FiEye, FiPlay, FiPause, FiDollarSign } from "react-icons/fi";
+import { FiFileText, FiUploadCloud, FiX, FiEye, FiPlay, FiPause, FiDollarSign, FiTrash2 } from "react-icons/fi";
 
 const statusOptions = ["Pending", "In Review", "Completed"];
 
@@ -114,6 +114,36 @@ const Queue = () => {
       setError("");
     } catch (err) {
       setError("Failed to mark file as paid.");
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const deleteFile = async (fileId, fileName) => {
+    const confirmed = window.confirm(`Delete ${fileName}? This will remove the audio file and any linked transcript.`);
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setUpdating(true);
+      await api.delete(`/api/superadmin/files/${fileId}/delete/`);
+      setFiles((prev) => prev.filter((file) => file.id !== fileId));
+      if (selectedFile?.id === fileId) {
+        setSelectedFile(null);
+      }
+      if (viewingTranscript?.id === fileId) {
+        setViewingTranscript(null);
+      }
+      if (playingFileId === fileId && audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+        setPlayingFileId(null);
+      }
+      setError("");
+    } catch (err) {
+      const detail = err.response?.data?.error || "Failed to delete file.";
+      setError(detail);
     } finally {
       setUpdating(false);
     }
@@ -319,6 +349,14 @@ const Queue = () => {
                             className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
                           >
                             {file.transcript ? "Edit transcript" : "Upload transcript"}
+                          </button>
+                          <button
+                            disabled={updating}
+                            onClick={() => deleteFile(file.id, file.name)}
+                            className="inline-flex items-center gap-1 px-3 py-1 text-xs bg-red-50 text-red-700 rounded-lg hover:bg-red-100 disabled:opacity-50"
+                          >
+                            <FiTrash2 size={12} />
+                            Delete
                           </button>
                         </div>
                       </td>
