@@ -1,25 +1,29 @@
 import React, { useEffect, useMemo, useState } from "react";
 import api from "../../api/api";
 import AdminTopbar from "../../components/superadmin/AdminTopbar";
+import { FiTrash2 } from "react-icons/fi";
 
 const Payments = () => {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState(null);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
 
+  const fetchFiles = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get("/api/superadmin/files/");
+      setFiles(response.data || []);
+      setError("");
+    } catch (err) {
+      setError("Failed to load payments.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchFiles = async () => {
-      try {
-        setLoading(true);
-        const response = await api.get("/api/superadmin/files/");
-        setFiles(response.data || []);
-      } catch (err) {
-        setError("Failed to load payments.");
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchFiles();
   }, []);
 
@@ -39,11 +43,38 @@ const Payments = () => {
     return { paidTotal, unpaidTotal, paidCount: paid.length, unpaidCount: unpaid.length };
   }, [files]);
 
+  const deletePaymentItem = async (file) => {
+    const confirmed = window.confirm(`Delete ${file.name}? This removes the payment record and uploaded file.`);
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setDeletingId(file.id);
+      await api.delete(`/api/superadmin/files/${file.id}/delete/`);
+      setFiles((prev) => prev.filter((entry) => entry.id !== file.id));
+      setError("");
+    } catch (err) {
+      const detail = err.response?.data?.error || "Failed to delete payment record.";
+      setError(detail);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div className="min-h-screen">
       <AdminTopbar title="Payments" onSearch={setSearch} />
 
       <div className="px-6 pb-10">
+        <div className="mt-6 flex justify-end">
+          <button
+            onClick={fetchFiles}
+            className="px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition"
+          >
+            Refresh payments
+          </button>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
           <div className="bg-white border border-gray-200 rounded-2xl p-5">
             <p className="text-sm text-gray-500">Paid</p>
@@ -68,18 +99,19 @@ const Payments = () => {
                   <th className="px-4 py-3 text-left">User</th>
                   <th className="px-4 py-3 text-left">Total</th>
                   <th className="px-4 py-3 text-left">Status</th>
+                  <th className="px-4 py-3 text-left">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {loading ? (
                   <tr>
-                    <td colSpan={4} className="px-4 py-6 text-center text-gray-500">
+                    <td colSpan={5} className="px-4 py-6 text-center text-gray-500">
                       Loading...
                     </td>
                   </tr>
                 ) : filteredFiles.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-4 py-6 text-center text-gray-500">
+                    <td colSpan={5} className="px-4 py-6 text-center text-gray-500">
                       No payments found.
                     </td>
                   </tr>
@@ -99,6 +131,16 @@ const Payments = () => {
                         }`}>
                           {file.payment_status || "Unpaid"}
                         </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <button
+                          disabled={deletingId === file.id}
+                          onClick={() => deletePaymentItem(file)}
+                          className="inline-flex items-center gap-1 px-3 py-1 text-xs bg-red-50 text-red-700 rounded-lg hover:bg-red-100 disabled:opacity-50"
+                        >
+                          <FiTrash2 size={12} />
+                          {deletingId === file.id ? "Deleting..." : "Delete"}
+                        </button>
                       </td>
                     </tr>
                   ))
