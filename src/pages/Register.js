@@ -41,35 +41,41 @@ const Register = () => {
 
             if (response.ok) {
                 setSuccess('Registration successful! Redirecting to login...');
-                
                 // Check if there's a pending upload
                 const pendingUploadId = localStorage.getItem('pendingUploadId');
-                
                 const freeTrialPending = sessionStorage.getItem('freeTrialPending') === 'true';
-
-                if (pendingUploadId) {
-                    // Redirect to login with upload message
-                    setTimeout(() => navigate('/login', { 
-                        state: { 
-                            from: '/register', 
-                            message: 'Please login to complete your upload and proceed to checkout' 
-                        } 
-                    }), 2000);
-                } else if (freeTrialPending) {
-                  setTimeout(() => navigate('/login', { 
-                    state: { 
-                      from: '/register',
-                      freeTrial: true,
-                      message: 'Please login to activate your free trial.'
-                    } 
-                  }), 2000);
-                } else {
-                    // Normal registration, go to login
-                    setTimeout(() => navigate('/login'), 2000);
-                }
+                setTimeout(() => {
+                  if (pendingUploadId) {
+                    navigate('/login', {
+                      state: {
+                        from: '/register',
+                        message: 'Please login to complete your upload and proceed to checkout'
+                      }
+                    });
+                  } else if (freeTrialPending) {
+                    navigate('/login', {
+                      state: {
+                        from: '/register',
+                        freeTrial: true,
+                        message: 'Please login to activate your free trial.'
+                      }
+                    });
+                  } else {
+                    navigate('/login');
+                  }
+                }, 2000);
             } else {
                 const data = await response.json();
-                setError(data.error || 'Registration failed. Please try again.');
+                // Handle both {error: ...} and serializer error objects
+                if (data.error) {
+                  setError(data.error);
+                } else if (typeof data === 'object' && data !== null) {
+                  // Collect all error messages from serializer errors
+                  const errors = Object.values(data).flat().join(' ');
+                  setError(errors || 'Registration failed. Please try again.');
+                } else {
+                  setError('Registration failed. Please try again.');
+                }
             }
         } catch (error) {
             setError('Something went wrong. Please try again.');
