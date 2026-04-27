@@ -11,6 +11,8 @@
 # production
 /build
 
+/launch-assets
+
 # misc
 .DS_Store
 .env.local
